@@ -1,0 +1,14 @@
+.venv/
+.worker-venv/
+.runtime/
+.cache/
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+data/
+.superpowers/
+# Existing third-party reference and artifact investigation remain separate.
+MiroFish/
+.rea/
