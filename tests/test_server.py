@@ -363,7 +363,15 @@ class ServerTests(unittest.TestCase):
             from misofish.core import MAX_AGENTS
             self.assertEqual(json.loads(body)["max_agents"], MAX_AGENTS)
             self.assertEqual(json.loads(body).get("default_agents"), 10)
+            self.assertTrue(json.loads(body).get("legal_corpus", {}).get("available"))
             self.assertIn("default-src 'self'", headers["Content-Security-Policy"])
+            legal_code, legal_body, _ = request("/api/legal/retrieve", {"scenario": "", "domain": "ni_act_138"})
+            self.assertEqual(legal_code, 200)
+            legal_payload = json.loads(legal_body)
+            self.assertEqual(legal_payload["domain"], "ni_act_138")
+            self.assertGreaterEqual(legal_payload["statutes_count"], 4)
+            self.assertGreaterEqual(legal_payload["precedents_count"], 3)
+            self.assertEqual(request("/api/legal/retrieve", {"domain": "invalid_domain"})[0], 422)
             for count in [MAX_AGENTS + 1, True, "10"]:
                 self.assertEqual(request("/api/runs", {"scenario": "Change", "agent_count": count})[0], 422)
             self.assertEqual(request("/api/runs", {"scenario": "Change"}, {"Origin": "https://evil.example"})[0], 403)

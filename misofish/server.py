@@ -19,8 +19,10 @@ from pydantic import ValidationError
 
 from .core import (Agent, Config, DEFAULT_AGENT_COUNT, DISCLAIMER, MAX_AGENTS, MAX_ROUNDS, Model,
                    generate_grounded_report, markdown, prepare_population)
+from .court import court_calls, run_court
 from .engine import Engine
 from .graph import GraphStore, build_graph
+from .legal import legal_status, retrieve_legal_dossier
 from .town import run_town, town_calls
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -148,7 +150,7 @@ class Manager:
             raise RuntimeError("One simulation is already active. Wait or cancel it before starting another.")
         if self.model is None:
             raise RuntimeError("Set OPENAI_API_KEY in your terminal and restart the server.")
-        if (config is None or config.platform_mode != "town") and not self.engine.available()["available"]:
+        if (config is None or config.platform_mode not in {"town", "court"}) and not self.engine.available()["available"]:
             raise RuntimeError("The supported OASIS worker is unavailable. Run the worker setup in README.")
         if config and config.platform_mode == "both" and not self.engine.twitter_available():
             raise RuntimeError("Twitter recommender weights are unavailable. Download them using README, or explicitly choose Reddit + Shared Room.")
@@ -169,8 +171,9 @@ class Manager:
                 raise RuntimeError("Model changed since preparation; create a new run.")
             interviews = len(agents) * (2 if config.platform_mode == "both" else 1)
             remaining = config.model_call_budget - run.get("model_calls", 0)
-            if config.platform_mode == "town":
-                needed = town_calls(config, [agent.id for agent in agents]) + 1
+            if config.platform_mode in {"town", "court"}:
+                needed = (court_calls(config, agents) if config.platform_mode == "court"
+                          else town_calls(config, [agent.id for agent in agents])) + 1
                 if remaining < needed:
                     raise RuntimeError(f"These conversations need {needed} model calls but only {remaining} remain. "
                                        "Prepare a new run with a larger budget, fewer ticks or shorter conversations.")
@@ -256,6 +259,13 @@ class Manager:
             config = Config.model_validate(run["config"])
             self.model.call_limit = before_calls + config.model_call_budget - previous_calls
             if preparing:
+                if config.platform_mode == "court" and not config.source.strip():
+                    try:
+                        dossier = retrieve_legal_dossier(config.scenario)
+                        run["config"]["source"] = dossier["source"]
+                        config = Config.model_validate(run["config"])
+                    except FileNotFoundError:
+                        pass
                 run["stage"] = "graph_preparation"
                 graph = build_graph(config, self.model, cancelled=self.stop.is_set, emit=emit)
                 self.graph_store.save(run["id"], graph)
@@ -275,7 +285,8 @@ class Manager:
                     raise RuntimeError("model_call_budget")
                 run["stage"] = "simulation"
                 worker_run = {**run, "config": {**run["config"], "model_call_budget": remaining}}
-                result = (run_town(config, agents, self.model, emit, self.stop.is_set) if config.platform_mode == "town"
+                result = (run_court(config, agents, self.model, emit, self.stop.is_set) if config.platform_mode == "court"
+                          else run_town(config, agents, self.model, emit, self.stop.is_set) if config.platform_mode == "town"
                           else self.engine.run(worker_run, emit, self.stop.is_set))
                 checkpoint()
                 if self.stop.is_set() or result["status"] == "cancelled":
@@ -445,6 +456,7 @@ def make_server(manager, port=8000):
                     self.reply(200, {"max_agents": MAX_AGENTS, "max_rounds": MAX_ROUNDS,
                                      "default_agents": DEFAULT_AGENT_COUNT,
                                      "worker": manager.engine.available(), "twitter_available": manager.engine.twitter_available(),
+                                     "legal_corpus": legal_status(),
                                      "model": getattr(manager.model, "name", os.getenv("OPENAI_MODEL", "gpt-4o-mini")),
                                      "configured": manager.model is not None, "disclaimer": DISCLAIMER})
                 elif path == "/api/runs":
@@ -492,6 +504,14 @@ def make_server(manager, port=8000):
                 path = urlsplit(self.path).path.strip("/").split("/")
                 if path == ["api", "runs"]:
                     self.reply(202, manager.create(body))
+                elif path == ["api", "legal", "retrieve"]:
+                    if not isinstance(body, dict) or set(body) - {"scenario", "domain"}:
+                        raise ValueError("Invalid legal retrieval request.")
+                    scenario = body.get("scenario", "")
+                    domain = body.get("domain", "auto")
+                    if not isinstance(scenario, str) or len(scenario) > 2000 or domain not in {"auto", "ni_act_138", "contract_breach", "constitution", "both"}:
+                        raise ValueError("Invalid legal retrieval parameters.")
+                    self.reply(200, retrieve_legal_dossier(scenario, domain))
                 elif len(path) == 4 and path[:2] == ["api", "runs"] and path[3] in {"start", "cancel"}:
                     if body != {}:
                         raise ValueError("Start/cancel body must be an empty JSON object.")

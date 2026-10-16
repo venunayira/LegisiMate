@@ -28,7 +28,7 @@ class ProviderFixture(BaseHTTPRequestHandler):
             result = {"entity_types": ["person", "organization", "issue"],
                       "actor_types": ["person", "organization"], "relationship_types": ["works_at", "concerns"]}
         elif name == "GraphBatch":
-            quote = payload["text"][:400]
+            quote = (payload.get("evidence_excerpts") or [payload["text"][:400]])[0]
             reference = [{"source_id": payload["source_id"], "quote": quote}]
             result = {"nodes": [{"id": "library", "name": "Town Library", "kind": "organization",
                 "summary": "Library services and opening hours.", "synthetic": payload["hypothetical"], "evidence": reference},
@@ -55,6 +55,15 @@ class ProviderFixture(BaseHTTPRequestHandler):
             result = {"text": "I hear you, but who pays for the extra evening staff? Can we phase it in?",
                       "view": "Longer hours are worth it if the funding is phased and public.",
                       "shift": "softened" if payload["memories"] else "unchanged"}
+        elif name == "CourtUtterance":
+            result = {"text": "My Lady, under Section 139 read with binding Supreme Court authority, the cheque carries a statutory presumption.",
+                      "view": "The statutory presumption holds if the notice timeline is proved.",
+                      "shift": "softened" if payload["memories"] else "unchanged",
+                      "if_opponent_argues": "If Defense claims the cheque was a security deposit.",
+                      "tactical_move": "Invoke Section 139 NI Act and prove crystallized debt on presentation date.",
+                      "counter_strategy": "Cite Supreme Court precedent holding security cheques attract Section 138 once liability matures.",
+                      "branch_outcome": "complainant_favour",
+                      "win_probability": 75}
         elif name == "Action":
             result = {"kind": "reply" if payload.get('reply_to') else "post",
                       "text": "I hear your concern about hours, but affordable access still needs a concrete plan.",

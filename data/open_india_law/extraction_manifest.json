@@ -1,0 +1,105 @@
+{
+  "dataset": "open-india-law",
+  "version": "v2026.08.1",
+  "domains": [
+    "ni_act_138",
+    "contract_breach",
+    "constitution"
+  ],
+  "verified_legislation_files": {
+    "in_central_legislation.parquet": {
+      "bytes": 26515484,
+      "sha256": "2a3aab1a2d7a8d3f2e87035870ff6f2f429d34d60b98dd6ab389502df0d4cb73"
+    },
+    "in_delhi_legislation.parquet": {
+      "bytes": 3015231,
+      "sha256": "cb82137a7a0e9567cb3250161530b38b301b3e1d7be8772616ea8bb7f2125cfa"
+    },
+    "in_maharashtra_legislation.parquet": {
+      "bytes": 9114645,
+      "sha256": "af08ebc65f9ae6878152a4aa2dcb442d9d6296c0017df5a493dc71fb2cc051a7"
+    },
+    "in_rbi_regulations.parquet": {
+      "bytes": 46417144,
+      "sha256": "3eebfe816cd7d96d54d8c19a00f11c808b6a3578144b93d33f386340f3096651"
+    }
+  },
+  "legislation_counts_by_source": {
+    "The Arbitration and Conciliation Act, 1996": 248,
+    "The Bharatiya Nagarik Suraksha Sanhita, 2023": 827,
+    "The Limitation Act, 1963": 72,
+    "The Indian Evidence Act, 1872, 1 of 1872 (Rep., Act 47 of 2023)": 274,
+    "The Negotiable Instruments Act, 1881": 178,
+    "The Code of Civil Procedure, 1908": 1554,
+    "The Payment and Settlement Systems Act, 2007": 65,
+    "The Specific Relief Act, 1963": 58,
+    "The Indian Contract Act, 1872": 196,
+    "The Bharatiya Sakshya Adhiniyam, 2023": 210,
+    "The Constitution of India, 1950": 465,
+    "RBI Cheque & Payment Directions": 973,
+    "Delhi State Commercial/Procedural Acts": 898,
+    "Maharashtra State Commercial/Procedural Acts": 1125
+  },
+  "courts": {
+    "supreme_court": {
+      "file": "in_supreme-court_judgments.parquet",
+      "row_groups_scanned": 28,
+      "total_row_groups": 56,
+      "bytes_transferred": 944946387,
+      "english_cases_seen": 17623,
+      "incomplete_boundary_cases_skipped": 21,
+      "cases_selected": 318,
+      "chunks_selected": 4811,
+      "domain_case_counts": {
+        "ni_act_138": 172,
+        "both": 2,
+        "contract_breach": 144
+      },
+      "elapsed_seconds": 171.01
+    },
+    "delhi": {
+      "file": "in_delhi_judgments.parquet",
+      "row_groups_scanned": 6,
+      "total_row_groups": 54,
+      "bytes_transferred": 103916300,
+      "english_cases_seen": 32744,
+      "incomplete_boundary_cases_skipped": 10,
+      "cases_selected": 665,
+      "chunks_selected": 3626,
+      "domain_case_counts": {
+        "ni_act_138": 573,
+        "contract_breach": 92
+      },
+      "elapsed_seconds": 52.38
+    },
+    "bombay": {
+      "file": "in_bombay_judgments.parquet",
+      "row_groups_scanned": 6,
+      "total_row_groups": 140,
+      "bytes_transferred": 93665061,
+      "english_cases_seen": 61886,
+      "incomplete_boundary_cases_skipped": 4,
+      "cases_selected": 617,
+      "chunks_selected": 1702,
+      "domain_case_counts": {
+        "ni_act_138": 591,
+        "contract_breach": 26
+      },
+      "elapsed_seconds": 45.66
+    }
+  },
+  "outputs": {
+    "target_legislation_parquet": "data/open_india_law/target_legislation.parquet",
+    "target_legislation_csv": "data/open_india_law/target_legislation.csv",
+    "domain_judgments_parquet": "data/open_india_law/domain_judgments.parquet",
+    "domain_judgments_csv": "data/open_india_law/domain_judgments.csv",
+    "sqlite_rag_db": {
+      "db_path": "data/open_india_law/legal_poc.db",
+      "db_bytes": 145653760,
+      "legislation_provisions": 7143,
+      "judgment_cases": 1600,
+      "judgment_chunks": 10139,
+      "citation_edges": 12714
+    }
+  }
+}

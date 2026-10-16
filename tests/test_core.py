@@ -50,9 +50,10 @@ class FakeModel:
         if output_type.__name__ == "Ontology":
             return output_type(entity_types=["organization"], actor_types=["organization"], relationship_types=["relates"])
         if output_type.__name__ == "GraphBatch":
+            quote = (payload.get("evidence_excerpts") or [payload["text"][:1000]])[0]
             return output_type.model_validate({"nodes": [{"id": "library", "name": "Fictional library",
-                "kind": "organization", "summary": payload["text"], "synthetic": True,
-                "evidence": [{"source_id": payload["source_id"], "quote": payload["text"]}]}], "edges": []})
+                "kind": "organization", "summary": quote, "synthetic": True,
+                "evidence": [{"source_id": payload["source_id"], "quote": quote}]}], "edges": []})
         if output_type.__name__ == "PopulationBatch":
             return PopulationModel().generate(output_type, instructions, payload, max_tokens)
         if output_type is Personas:
@@ -61,6 +62,20 @@ class FakeModel:
             return output_type(text=f"{payload['you']['name']} answers {len(payload['conversation'])} remarks.",
                 view=f"{payload['you']['name']} now weighs {len(payload['memories'])} memories.",
                 shift="softened" if payload["memories"] else "unchanged")
+        if output_type.__name__ == "CourtUtterance":
+            branch_num = payload.get("branch_number", 1)
+            win_prob = 78 if branch_num >= 3 else (32 if branch_num == 1 else 54)
+            outcome = "complainant_favour" if branch_num >= 3 else ("defense_favour" if branch_num == 1 else "balanced_split")
+            return output_type(
+                text=f"{payload['you']['name']} argues branch {branch_num} after {len(payload['conversation'])} turns.",
+                view=f"{payload['you']['name']} assesses branch {branch_num} at {win_prob}% win probability.",
+                shift="softened" if payload["memories"] else "unchanged",
+                if_opponent_argues="Opponent challenges statutory notice timeline and debt enforceability.",
+                tactical_move="Cite statutory presumption and prove primary dispatch records.",
+                counter_strategy="State exact dispatch dates under Section 138 Proviso (b) and binding SC precedent.",
+                branch_outcome=outcome,
+                win_probability=win_prob,
+            )
         if output_type is Action:
             if on_delta:
                 on_delta({"text": "Please consider"})

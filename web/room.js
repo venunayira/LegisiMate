@@ -14,15 +14,24 @@ window.ConversationRoom = (() => {
     text.tabIndex=0;element.append(name,text);host.append(element);
     return {element,name,text};
   };
-  let tracks=[],town=null,townDone=true,playing={paused:false,speed:1},cast=new Map(),signature='',selected=null,paused=false,deciding=new Set(),layout=null,last=0;
+  let tracks=[],town=null,townDone=true,courtMode=false,playing={paused:false,speed:1},cast=new Map(),signature='',selected=null,paused=false,deciding=new Set(),layout=null,last=0;
   const words=text=>text.match(/\s*\S+\s*/gu)||[];
   const duration=text=>Math.max(5000,words(text).length*400+1800);
   const hash=(x,y)=>(Math.imul(x+101,73856093)^Math.imul(y+211,19349663))>>>0;
+  const seatOf=(role='',index=1)=>{
+    const lower=role.toLowerCase();
+    if(/judge|justice|bench|magistrate|presiding/.test(lower))return 'bench';
+    if(/jury|juror|foreperson|assessor/.test(lower))return 'jury';
+    if(/witness|deponent/.test(lower))return 'witness';
+    if(/defense|defence|respondent|accused|opposite/.test(lower))return 'defense';
+    if(/complainant|plaintiff|petitioner|claimant|prosecut|appellant/.test(lower))return 'petitioner';
+    return ['bench','petitioner','defense','witness','witness','jury','jury','jury','petitioner','defense'][(index-1)%10];
+  };
   const listenerOf=(speech,actions)=>{
     const parent=speech.reply_to&&actions.find(action=>action.id===speech.reply_to);
     return parent&&parent.agent_id!==speech.agent_id?cast.get(parent.agent_id):null;
   };
-  const whereOf=(speech,actions)=>speech.platform==='town'?`Group ${speech.data?.group}`:speech.kind==='interview'?'final interview'
+  const whereOf=(speech,actions)=>speech.platform==='court'?(speech.data?.stage||'in Court'):speech.platform==='town'?`Group ${speech.data?.group}`:speech.kind==='interview'?'final interview'
     :listenerOf(speech,actions)?`to ${listenerOf(speech,actions).actor.name}`:speech.engine_kind==='send_to_group'?'in the Shared Room':'on the Public Board';
   function open(key,items,extra){
     const track={key,bubble:bubble(),items,index:0,elapsed:0,updated:performance.now(),visible:-1,arrived:false,labelled:null,...extra};
@@ -63,7 +72,28 @@ window.ConversationRoom = (() => {
     const columns=Math.ceil(width/tile),rows=Math.ceil(height/tile),center={x:Math.floor(columns/2),y:Math.floor(rows*.58)};
     return {width,height,tile,columns,rows,center,hall:{x:center.x-4,y:1,w:8,h:4},board:{x:center.x+4.5,y:center.y-2.4}};
   }
+  function courtSeats(){
+    const {tile,columns,rows,center,hall}=layout,buckets={bench:[],petitioner:[],defense:[],witness:[],jury:[]};
+    [...cast.values()].forEach((item,idx)=>buckets[seatOf(item.actor.role,idx+1)].push(item));
+    const assign=(item,x,y,face,labelAbove=false)=>{item.home={x,y};item.slot={x,y};item.face=item.dir=face;item.seat=seatOf(item.actor.role,item.id);item.labelAbove=labelAbove;};
+    // 1. Presiding Judge on the elevated top-center Bench dais (label above head)
+    buckets.bench.forEach((item,idx)=>assign(item,(center.x+(idx-(buckets.bench.length-1)/2)*2.4)*tile,(hall.y+2.45)*tile,'down',true));
+    // 2. Jury Box on the left wall (2 staggered columns x up to 6 rows)
+    buckets.jury.forEach((item,idx)=>{
+      const col=idx%2,row=Math.floor(idx/2);
+      assign(item,(2.1+col*2.1)*tile,Math.min(rows-4.8,hall.y+4.4+row*1.85+col*.55)*tile,'right',false);
+    });
+    // 3. Two parallel Counsel Tables in the well of the court (wider spacing + staggered label heights so both Counsel labels show)
+    buckets.petitioner.forEach((item,idx)=>assign(item,(center.x-5.4+idx*2.9)*tile,(center.y+.55+(idx%2)*.45)*tile,'up',idx%2===1));
+    buckets.defense.forEach((item,idx)=>assign(item,(center.x+2.5+idx*2.9)*tile,(center.y+.55+(idx%2)*.45)*tile,'up',idx%2===1));
+    // 4. Witness Stand (left of Bench) & Party/Witness Dock (right wall enclosure)
+    buckets.witness.forEach((item,idx)=>{
+      if(idx===0)assign(item,(center.x-6.2)*tile,(hall.y+2.95)*tile,'down',true);
+      else assign(item,(columns-3.1)*tile,(center.y-.8+(idx-1)*2.2)*tile,'left',false);
+    });
+  }
   function arrange(){
+    if(courtMode){courtSeats();return;}
     const {tile,columns,rows,center,hall}=layout,count=cast.size;
     const top=hall.y+hall.h+2,across=Math.ceil(Math.sqrt(count*(columns-4)/Math.max(1,rows-top-1))),down=Math.ceil(count/across);
     [...cast.values()].forEach((item,index)=>{
@@ -79,6 +109,121 @@ window.ConversationRoom = (() => {
     const block=(x,y,w,h,fill)=>{draw.fillStyle=fill;draw.fillRect(Math.round(x*tile),Math.round(y*tile),Math.ceil(w*tile),Math.ceil(h*tile));};
     const disc=(x,y,radius,fill)=>{draw.fillStyle=fill;draw.beginPath();draw.arc(x*tile,y*tile,radius*tile,0,Math.PI*2);draw.fill();};
     const sign=(value,x,y,size,fill)=>{draw.fillStyle=fill;draw.font=`600 ${size}px "IBM Plex Sans", sans-serif`;draw.textAlign='center';draw.textBaseline='middle';draw.fillText(value,x*tile,y*tile);};
+    if(courtMode){
+      const box3d=(x,y,w,h,d,topFill,frontFill,stroke='#3e2616')=>{
+        draw.fillStyle='rgba(22,16,12,.22)';
+        draw.fillRect(Math.round((x+.18)*tile),Math.round((y+d+.18)*tile),Math.ceil(w*tile),Math.ceil(h*tile));
+        block(x,y+h,w,d,frontFill);
+        block(x,y,w,h,topFill);
+        draw.strokeStyle=stroke;draw.lineWidth=Math.max(1,tile*.07);
+        draw.strokeRect(Math.round(x*tile),Math.round(y*tile),Math.ceil(w*tile),Math.ceil(h*tile));
+        draw.fillStyle='rgba(255,255,255,.16)';
+        draw.fillRect(Math.round((x+.08)*tile),Math.round((y+.08)*tile),Math.ceil((w-.16)*tile),Math.max(2,Math.round(tile*.12)));
+      };
+      const chair3d=(cx,cy,dir='up',accent='#7c2d25')=>{
+        box3d(cx-.48,cy-.38,.96,.72,.22,accent,'#4a1915','#2e120d');
+        if(dir==='up')box3d(cx-.48,cy+.18,.96,.22,.32,'#5c3822','#382012');
+        else if(dir==='down')box3d(cx-.48,cy-.52,.96,.22,.28,'#5c3822','#382012');
+        else if(dir==='right')box3d(cx-.54,cy-.38,.22,.72,.28,'#5c3822','#382012');
+        else if(dir==='left')box3d(cx+.32,cy-.38,.22,.72,.28,'#5c3822','#382012');
+      };
+      // Warm limestone & checkerboard marble courtroom floor
+      block(0,0,columns,rows,'#ebe2d3');
+      for(let y=1;y<rows-1;y++)for(let x=1;x<columns-1;x++){
+        if((x+y)%2===0)block(x,y,1,1,'#e2d6c3');
+      }
+      // Architectural perimeter walls with 2.5D wainscot paneling & side windows
+      box3d(0,0,columns,1.15,.35,'#4a2e1b','#2e1b0f','#1f1209');
+      block(0,1.15,.85,rows-1.8,'#593822');block(columns-.85,1.15,.85,rows-1.8,'#593822');
+      box3d(0,rows-.75,columns,.75,.2,'#4a2e1b','#2b190e');
+      for(let wy=4;wy<rows-5;wy+=3){
+        block(.12,wy,.55,1.8,'#bae6fd');block(columns-.67,wy,.55,1.8,'#bae6fd');
+      }
+      // Royal crimson courtroom carpet runner from entrance doors to Bench dais
+      block(center.x-1.35,hall.y+3.8,2.7,rows-hall.y-4.5,'#8f2424');
+      block(center.x-1.15,hall.y+3.8,2.3,rows-hall.y-4.5,'#ab2f2f');
+
+      // 1. Elevated Judicial Dais & Presiding Bench (Top Center, with side stairs & flanking boxes)
+      box3d(center.x-7.5,hall.y+.3,15.0,3.3,.48,'#c8ab83','#8c6743','#543820');
+      for(let s=0;s<3;s++){
+        block(center.x-5.3,hall.y+.6+s*.35,1.1,.28,'#b59368');
+        block(center.x+4.2,hall.y+.6+s*.35,1.1,.28,'#b59368');
+      }
+      chair3d(center.x,hall.y+1.9,'down','#8f2424');
+      box3d(center.x-4.1,hall.y+1.95,8.2,1.35,.62,'#7c4d2b','#4f2f18','#331d0d');
+      block(center.x-3.7,hall.y+2.15,7.4,.9,'#992929');
+      sign('PRESIDING BENCH',center.x,hall.y+2.62,Math.max(9,tile*.38),'#fff8eb');
+
+      // Flanking Witness Stand (Left of Bench) & Court Clerk Box (Right of Bench)
+      box3d(center.x-7.2,hall.y+1.7,2.2,1.7,.52,'#b89162','#75512d','#422b15');
+      sign('Witness Stand',center.x-6.1,hall.y+1.35,Math.max(8,tile*.31),'#3b2312');
+      box3d(center.x+5.0,hall.y+1.7,2.2,1.7,.52,'#b89162','#75512d','#422b15');
+      sign('Court Clerk',center.x+6.1,hall.y+1.35,Math.max(8,tile*.31),'#3b2312');
+
+      // 2. Stepped 2-Column Jury Box along Left Wall (matching floorplan)
+      const juryRows=6,juryTop=hall.y+3.4,juryH=Math.min(rows-juryTop-4.6,juryRows*1.65+.8);
+      box3d(1.15,juryTop,4.1,juryH,.45,'#d4bc96','#87633f','#4a3119');
+      for(let r=0;r<juryRows;r++){
+        const cy=juryTop+.85+r*1.62;
+        if(cy+0.6<juryTop+juryH){
+          chair3d(2.35,cy,'right','#6b442a');
+          chair3d(4.0,cy,'right','#6b442a');
+        }
+      }
+      sign('JURY BOX',3.2,juryTop-.35,Math.max(8,tile*.34),'#3b2312');
+
+      // 3. Well of the Court: Two Parallel Counsel Tables with 2 Chairs Each
+      const tableY=center.y-1.65;
+      // Left Table: Complainant / Petitioner Counsel
+      chair3d(center.x-4.8,center.y+.35,'up','#14705e');
+      chair3d(center.x-2.6,center.y+.35,'up','#14705e');
+      box3d(center.x-5.8,tableY,4.3,1.55,.48,'#9c6b43','#5e3c20','#36200f');
+      block(center.x-5.4,tableY+.25,.7,.5,'#f8fafc');block(center.x-3.1,tableY+.25,.7,.5,'#fef3c7');
+      sign('Complainant / Plaintiff Counsel',center.x-3.65,tableY-.38,Math.max(8,tile*.33),'#0f594a');
+
+      // Right Table: Accused / Defense Counsel
+      chair3d(center.x+2.6,center.y+.35,'up','#991b1b');
+      chair3d(center.x+4.8,center.y+.35,'up','#991b1b');
+      box3d(center.x+1.5,tableY,4.3,1.55,.48,'#9c6b43','#5e3c20','#36200f');
+      block(center.x+1.9,tableY+.25,.7,.5,'#f8fafc');block(center.x+4.2,tableY+.25,.7,.5,'#fee2e2');
+      sign('Accused / Defense Counsel',center.x+3.65,tableY-.38,Math.max(8,tile*.33),'#8f1d1d');
+
+      // 4. Right Wall Dock / Witness & Party Enclosure
+      const dockTop=center.y-2.2;
+      box3d(columns-4.6,dockTop,3.1,4.2,.45,'#d4bc96','#87633f','#4a3119');
+      chair3d(columns-3.1,dockTop+1.2,'left','#6b442a');
+      chair3d(columns-3.1,dockTop+3.0,'left','#6b442a');
+      sign('Party / Dock',columns-3.05,dockTop-.35,Math.max(8,tile*.32),'#3b2312');
+
+      // 5. Wooden Bar Railing + Public Gallery with Seated Audience in Back
+      const barY=Math.max(center.y+2.1,rows-4.9);
+      box3d(1.15,barY,center.x-3.0,.32,.35,'#704425','#452813');
+      box3d(center.x+1.85,barY,columns-center.x-3.0,.32,.35,'#704425','#452813');
+      sign('PUBLIC GALLERY & AUDIENCE',center.x,barY+.2,Math.max(8,tile*.3),'#fff8eb');
+
+      const pewRows=Math.min(3,Math.max(1,Math.floor((rows-barY-1.4)/1.15)));
+      const audienceColors=['#334155','#475569','#1e3a5f','#57534e','#3f6212','#6b21a8','#7c2d12','#0f766e'];
+      const audienceHairs=['#1c1917','#44403c','#27272a','#57534e','#78716c'];
+      for(let r=0;r<pewRows;r++){
+        const py=barY+.85+r*1.12;
+        box3d(1.6,py,center.x-3.6,.55,.26,'#8c5a36','#57351d');
+        box3d(center.x+2.0,py,columns-center.x-3.6,.55,.26,'#8c5a36','#57351d');
+        for(let s=0;s<5;s++){
+          for(const side of [-1,1]){
+            const ax=side<0?(2.35+s*((center.x-4.6)/4.5)):(center.x+2.65+s*((columns-center.x-4.6)/4.5));
+            const seed=hash(s+r*7,side<0?11:29);
+            if(seed%4===0)continue; // Leave a few empty seats for natural realism
+            const coat=audienceColors[seed%audienceColors.length],hair=audienceHairs[seed%audienceHairs.length];
+            block(ax-.32,py-.18,.64,.42,coat);
+            disc(ax,py-.32,.22,'#d9a27c');
+            block(ax-.22,py-.48,.44,.24,hair);
+          }
+        }
+      }
+      // Double courtroom entrance doors at bottom center
+      box3d(center.x-1.6,rows-.82,3.2,.55,.2,'#6b3e20','#3d2210');
+      return;
+    }
     block(0,0,columns,rows,'#94cf74');
     for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){
       const noise=hash(x,y);
@@ -124,7 +269,13 @@ window.ConversationRoom = (() => {
   }
   function slots(){
     for(const item of cast.values())item.slot=null;
-    if(!town||!layout)return;
+    if(!layout)return;
+    if(courtMode){
+      courtSeats();
+      if(town?.groups[0])town.groups[0].cell={x:8,y:8,w:layout.width-16,h:layout.height-16};
+      return;
+    }
+    if(!town)return;
     const {tile,width,height,hall}=layout,top=(hall.y+hall.h+.5)*tile,count=town.groups.length;
     const across=Math.max(1,Math.min(count,width<600?2:Math.round(Math.sqrt(count*width/Math.max(1,height-top)))));
     const down=Math.ceil(count/across),cellWidth=width/across,cellHeight=(height-top)/Math.max(1,down);
@@ -163,7 +314,8 @@ window.ConversationRoom = (() => {
     return {id:actor.id,actor,color,label,x:0,y:0,home:{x:0,y:0},dir:'down',moving:false};
   }
   function render(run,thinking=[],speech=null,playback={}){
-    const next=`${run.id}:${run.agents.map(actor=>actor.id).join(',')}`;
+    const next=`${run.id}:${run.config?.platform_mode||''}:${run.agents.map(actor=>actor.id).join(',')}`;
+    courtMode=run.config?.platform_mode==='court';
     if(next!==signature){
       signature=next;close();town=null;
       for(const item of cast.values())item.label.remove();
@@ -185,7 +337,7 @@ window.ConversationRoom = (() => {
       townDone=run.round>=playback.tick||run.status!=='running';
       for(const track of tracks){
         track.actions=actions;
-        track.items=actions.filter(action=>action.platform==='town'&&action.round===playback.tick&&action.data?.group===track.group.id)
+        track.items=actions.filter(action=>['town','court'].includes(action.platform)&&action.round===playback.tick&&action.data?.group===track.group.id)
           .sort((first,second)=>first.data.turn-second.data.turn);
       }
     }else{
@@ -211,11 +363,30 @@ window.ConversationRoom = (() => {
     const unit=layout.tile/16,x=item.x,y=item.y,swing=item.moving?(Math.floor(time/150)%2?1:-1):0;
     const part=(dx,dy,w,h,fill)=>{context.fillStyle=fill;context.fillRect(Math.round(x+dx*unit),Math.round(y+dy*unit),Math.ceil(w*unit),Math.ceil(h*unit));};
     const skin=skins[item.id%skins.length],hair=hairs[item.id%hairs.length];
-    context.fillStyle='rgba(32,45,50,.22)';context.beginPath();context.ellipse(x,y,6*unit,2*unit,0,0,Math.PI*2);context.fill();
-    if(item.id===selected){context.strokeStyle='#f08368';context.lineWidth=Math.max(1.5,unit);context.beginPath();context.ellipse(x,y,8*unit,3*unit,0,0,Math.PI*2);context.stroke();}
-    part(-4,-5,3,5-Math.max(0,swing),'#3d4b5c');part(1,-5,3,5-Math.max(0,-swing),'#3d4b5c');
-    part(-7,-11+Math.max(0,-swing),2,5,skin);part(5,-11+Math.max(0,swing),2,5,skin);
-    part(-5,-11,10,7,item.color);part(-5,-5,10,1,'rgba(32,45,50,.25)');
+    const activeSpeech=tracks.some(t=>t.items[t.index]?.agent_id===item.id&&!t.bubble.element.hidden);
+    context.fillStyle='rgba(32,45,50,.24)';context.beginPath();context.ellipse(x,y,6.5*unit,2.4*unit,0,0,Math.PI*2);context.fill();
+    if(activeSpeech){
+      context.fillStyle='rgba(245,158,11,.26)';context.beginPath();context.ellipse(x,y,11*unit,4.5*unit,0,0,Math.PI*2);context.fill();
+      context.strokeStyle='#d97706';context.lineWidth=Math.max(2,1.4*unit);context.beginPath();context.ellipse(x,y,11*unit,4.5*unit,0,0,Math.PI*2);context.stroke();
+    }
+    if(item.id===selected){context.strokeStyle='#f08368';context.lineWidth=Math.max(1.5,unit);context.beginPath();context.ellipse(x,y,8.5*unit,3.2*unit,0,0,Math.PI*2);context.stroke();}
+    const seat=courtMode?(item.seat||seatOf(item.actor.role,item.id)):null;
+    const robeColor=seat==='bench'?'#14161d':(seat==='petitioner'||seat==='defense')?'#1e242d':item.color;
+    part(-4,-5,3,5-Math.max(0,swing),'#252f3d');part(1,-5,3,5-Math.max(0,-swing),'#252f3d');
+    part(-7,-11+Math.max(0,-swing),2,5,seat==='bench'||seat==='petitioner'||seat==='defense'?'#1e242d':skin);
+    part(5,-11+Math.max(0,swing),2,5,seat==='bench'||seat==='petitioner'||seat==='defense'?'#1e242d':skin);
+    part(-5,-11,10,7,robeColor);part(-5,-5,10,1,'rgba(32,45,50,.28)');
+    if(seat==='bench'){
+      // Presiding Judge: crimson judicial stole + white judicial collar bands + gold trim
+      part(-5,-11,2,7,'#8f2424');part(3,-11,2,7,'#8f2424');
+      part(-2,-11,4,2,'#ffffff');part(-1.6,-9,1.1,3,'#ffffff');part(.5,-9,1.1,3,'#ffffff');
+    }else if(seat==='petitioner'||seat==='defense'){
+      // Indian Advocate robe: black gown, white shirt V-neck, two white advocate neck bands, side colour lapel badge
+      part(-2,-11,4,2,'#f8fafc');part(-1.5,-9,1.0,3.2,'#ffffff');part(.5,-9,1.0,3.2,'#ffffff');
+      part(2.5,-10,2,2,seat==='petitioner'?'#10b981':'#ef4444');
+    }else if(seat==='jury'){
+      part(-1.5,-11,3,2,'#f8fafc');
+    }
     part(-4,-18,8,7,skin);
     if(item.dir==='up')part(-4,-19,8,6,hair);
     else{
@@ -236,12 +407,20 @@ window.ConversationRoom = (() => {
       if(!speaker||element.hidden)continue;
       speaking.add(speaker.id);
       const cell=track.group?.cell||{x:0,y:0,w:layout.width,h:layout.height};
-      if(track.group)element.style.width=`${Math.max(150,Math.min(300,cell.w-12))}px`;
-      // A group's bubble sits above the whole circle so it never hides the listeners.
-      const head=(track.group?Math.min(...track.group.members.map(id=>cast.get(id)?.y??speaker.y)):speaker.y)-21*unit,width=element.offsetWidth,height=element.offsetHeight;
-      const left=Math.max(8,Math.min(layout.width-width-8,Math.max(cell.x+6,Math.min(cell.x+cell.w-width-6,speaker.x-width/2))));
-      // Group bubbles stay inside their group's cell so simultaneous conversations do not cover each other.
-      const below=!track.group&&head-height-12<8,top=track.group?Math.max(cell.y+4,head-height-12):below?Math.min(layout.height-height-8,speaker.y+10):head-height-12;
+      if(track.group)element.style.width=`${Math.max(150,Math.min(courtMode?290:300,cell.w-12))}px`;
+      const head=((track.group&&!courtMode)?Math.min(...track.group.members.map(id=>cast.get(id)?.y??speaker.y)):speaker.y)-22*unit,width=element.offsetWidth,height=element.offsetHeight;
+      let left=Math.max(8,Math.min(layout.width-width-8,Math.max(cell.x+6,Math.min(cell.x+cell.w-width-6,speaker.x-width/2))));
+      let below=false,top=head-height-14;
+      if(courtMode){
+        // In Courtroom mode, place the bubble below the active speaker (over the open courtroom well or gallery aisle) so neither the speaker nor the Bench above is covered!
+        below=speaker.y+height+26<layout.height;
+        top=below?speaker.y+18:Math.max(8,head-height-14);
+        if(speaker.seat==='jury')left=Math.min(layout.width-width-12,speaker.x+20);
+      }else if(track.group){
+        top=Math.max(cell.y+4,head-height-12);
+      }else if(head-height-14<8){
+        below=true;top=Math.min(layout.height-height-8,speaker.y+12);
+      }
       element.classList.toggle('below',below);
       element.style.left=`${left}px`;element.style.top=`${top}px`;
       element.style.setProperty('--tail-left',`${Math.max(16,Math.min(width-16,speaker.x-left))}px`);
@@ -249,11 +428,15 @@ window.ConversationRoom = (() => {
     }
     labels.classList.toggle('crowded',cast.size>20);
     for(const item of [...cast.values()].sort((first,second)=>(second.id===selected)-(first.id===selected))){
-      item.label.hidden=speaking.has(item.id)||(cast.size>20&&item.id!==selected);
+      const isSpeaking=speaking.has(item.id);
+      item.label.classList.toggle('speaking-now',isSpeaking);
+      item.label.hidden=(!courtMode&&isSpeaking)||(cast.size>20&&item.id!==selected&&!isSpeaking);
       if(item.label.hidden)continue;
-      item.label.style.left=`${item.x}px`;item.label.style.top=`${item.y-21*unit}px`;
+      item.label.style.left=`${item.x}px`;
+      const above=!courtMode||item.labelAbove||isSpeaking;
+      item.label.style.top=above?`${item.y-22*unit}px`:`${item.y+16*unit}px`;
       const bounds=item.label.getBoundingClientRect();
-      if(placed.some(other=>bounds.left<other.right+3&&bounds.right>other.left-3&&bounds.top<other.bottom+3&&bounds.bottom>other.top-3))item.label.hidden=true;
+      if(!courtMode&&!isSpeaking&&placed.some(other=>bounds.left<other.right+3&&bounds.right>other.left-3&&bounds.top<other.bottom+3&&bounds.bottom>other.top-3))item.label.hidden=true;
       else placed.push(bounds);
     }
   }

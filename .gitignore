@@ -7,7 +7,12 @@ __pycache__/
 *.pyc
 .env
 .env.*
-data/
+data/*
+!data/open_india_law/
+data/open_india_law/*
+!data/open_india_law/target_legislation.parquet
+!data/open_india_law/domain_judgments.parquet
+!data/open_india_law/extraction_manifest.json
 .superpowers/
 # Existing third-party reference and artifact investigation remain separate.
 MiroFish/

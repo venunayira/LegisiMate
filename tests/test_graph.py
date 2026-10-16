@@ -57,6 +57,24 @@ class GraphTests(unittest.TestCase):
         self.assertIn("Elin runs the clinic.", quotes)
         self.assertIn("The clinic needs funding.", quotes)
 
+    def test_multiline_source_never_emits_newlines_in_strict_quote_enum(self):
+        model = GraphModel()
+        original = model.generate
+        schemas = []
+        def capture(output_type, *args, **kwargs):
+            if output_type.__name__ == "GraphBatch":
+                schemas.append(output_type.model_json_schema())
+            return original(output_type, *args, **kwargs)
+        model.generate = capture
+        multiline = "Line one: Elin runs the clinic.\n\nLine two: The clinic needs funding.\nLine three: Section 138 applies."
+        self.api().build_graph(Config(scenario="Clinic policy", source=multiline), model)
+        schema = schemas[0]
+        node = schema["$defs"][schema["properties"]["nodes"]["items"]["$ref"].split("/")[-1]]
+        reference = schema["$defs"][node["properties"]["evidence"]["items"]["$ref"].split("/")[-1]]
+        quotes = reference["properties"]["quote"]["enum"]
+        self.assertTrue(quotes)
+        self.assertTrue(all("\n" not in q and "\r" not in q and q in multiline for q in quotes))
+
     def test_graph_failed_transaction_retains_prior_snapshot_and_search(self):
         import copy
         import sqlite3

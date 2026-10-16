@@ -30,7 +30,7 @@ class Config(StrictModel):
     agent_count: int = Field(default=DEFAULT_AGENT_COUNT, ge=1, le=MAX_AGENTS)
     rounds: int = Field(default=3, ge=1, le=MAX_ROUNDS)
     population_mode: Literal["fictional", "grounded"] = "fictional"
-    platform_mode: Literal["town", "both", "reddit"] = "both"
+    platform_mode: Literal["court", "town", "both", "reddit"] = "both"
     conversation_minutes: int = Field(default=5, ge=1, le=30)
     model_call_budget: int = Field(default=500, ge=1, le=100000)
     minutes_per_round: int = Field(default=30, ge=1, le=1440)
@@ -40,8 +40,8 @@ class Config(StrictModel):
 
     @model_validator(mode="after")
     def town_needs_conversation(self):
-        if self.platform_mode == "town" and self.agent_count < 2:
-            raise ValueError("Town conversations need at least two personas.")
+        if self.platform_mode in {"town", "court"} and self.agent_count < 2:
+            raise ValueError("Town and courtroom simulations need at least two personas.")
         return self
 
 
@@ -289,6 +289,7 @@ def prepare(config, model):
 
 
 def prepare_population(config, graph, model, cancelled=lambda: False, emit=None, graph_store=None, run_id=None):
+    from .court import court_role_for_slot
     from .graph import graph_context
     config = Config.model_validate(config.model_dump())
     emit = emit or (lambda kind, data: None)
@@ -318,9 +319,12 @@ def prepare_population(config, graph, model, cancelled=lambda: False, emit=None,
                 "entity": None, "relationships": [], "neighbors": []}
             if entity and graph_store is not None:
                 context = graph_store.context(run_id, entity["id"], config.scenario)
-            slots.append({"index": index + 1,
-                          "entity_id": entity["id"] if config.population_mode == "grounded" else None,
-                          "context": context})
+            slot_item = {"index": index + 1,
+                         "entity_id": entity["id"] if config.population_mode == "grounded" else None,
+                         "context": context}
+            if config.platform_mode == "court":
+                slot_item["court_role"] = court_role_for_slot(index + 1)
+            slots.append(slot_item)
         shared = {"ontology": graph["ontology"], "nodes": graph["nodes"][:24], "edges": graph["edges"][:48]}
         known_ids = {node["id"] for node in shared["nodes"]}
         for slot in slots:
@@ -343,7 +347,9 @@ def prepare_population(config, graph, model, cancelled=lambda: False, emit=None,
             "Preserve each slot's entity_id in profile.entity_id; in fictional mode it MUST be null, "
             "even when context.entity has an ID. Put relevant graph evidence IDs in source_entity_ids instead. "
             "Use graph facts and relationship context, not arbitrary personalities. "
-            "role must be a concrete profession or occupation. "
+            "role must be a concrete profession or occupation; when a slot includes court_role, set role to that "
+            "exact courtroom role (Presiding Judge, Complainant/Plaintiff Counsel, Accused/Respondent Defense Counsel, "
+            "Key Witness, or Jury/Assessor Panel Member) and align goal, beliefs and initial_view with that role. "
             "Give each a concrete goal, relevant background, interests, plausible initial beliefs and speaking style. "
             "Give each an outlook (optimistic, pessimistic, skeptical or pragmatic) and openness to persuasion "
             "(low, medium or high); vary both across the population instead of making everyone agreeable. "
@@ -371,7 +377,10 @@ def prepare_population(config, graph, model, cancelled=lambda: False, emit=None,
             if slot["entity_id"] and slot["entity_id"] not in persona.profile.source_entity_ids:
                 raise ValueError("population_evidence_missing")
             names.add(persona.name.casefold())
-            agents.append(Agent(id=slot["index"], **persona.model_dump(), graph_context=slot["context"]))
+            persona_data = persona.model_dump()
+            if slot.get("court_role"):
+                persona_data["role"] = slot["court_role"]
+            agents.append(Agent(id=slot["index"], **persona_data, graph_context=slot["context"]))
         emit("population_progress", {"completed": len(agents), "total": config.agent_count})
     return agents
 
@@ -549,6 +558,13 @@ def generate_grounded_report(config, graph_store, run_id, agents, effects, model
             if identity:
                 retrieval.append(graph_store.context(run_id, identity, config.scenario, limit=6))
     nodes, edges = graph["nodes"][:24], graph["edges"][:48]
+    supplied_nodes = {node["id"] for node in nodes}
+    supplied_edges = {edge["id"] for edge in edges}
+    for context in retrieval:
+        supplied_nodes.add(context["entity"]["id"])
+        supplied_nodes.update(node["id"] for node in context["neighbors"])
+        supplied_edges.update(edge["id"] for edge in context["relationships"])
+    action_ids = {effect["id"] for effect in selected} | {item["id"] for item in final_interviews}
     emit("report_progress", {"phase": "retrieved", "public_effects": len(public), "supplied_effects": len(evidence)})
     # Provider schemas cannot carry defaults; local validation still uses GroundedReport below.
     provider_type = create_model("GroundedReport", __base__=GroundedReport, conclusion=(str, ...),
@@ -559,6 +575,9 @@ def generate_grounded_report(config, graph_store, run_id, agents, effects, model
         "open questions, evidence-backed findings and limitations. Separate quoted source facts, synthetic "
         "profile assumptions and observed social actions. Cite only supplied action IDs for simulated claims "
         "and entity/relationship IDs for source claims. Every finding requires at least one citation. "
+        "CRITICAL: In findings, action_ids MUST ONLY contain integers from valid_action_ids; entity_ids MUST ONLY "
+        "contain exact IDs from valid_entity_ids (never entity names or effect_ids); relationship_ids MUST ONLY "
+        "contain exact IDs from valid_relationship_ids (or leave entity_ids and relationship_ids empty []). "
         "final_interviews are each persona's final view: an interview answer after the discussion or their last "
         "updated view in town conversations, with a self-reported shift from their "
         "initial_view. In opinion_changes, explain who reversed, softened, hardened or kept their view and what "
@@ -571,6 +590,9 @@ def generate_grounded_report(config, graph_store, run_id, agents, effects, model
             **({"outlook": agent.profile.outlook, "openness": agent.profile.openness,
                 "initial_view": agent.profile.initial_view} if agent.profile else {})}
             for agent in agents if agent.id in speakers],
+         "valid_action_ids": sorted(action_ids),
+         "valid_entity_ids": sorted(supplied_nodes),
+         "valid_relationship_ids": sorted(supplied_edges),
          "graph": {"nodes": nodes, "edges": edges}, "retrieval": retrieval, "actions": evidence,
          "total_public_effects": len(public), "history_sampled": len(evidence) != len(public),
          "final_interviews": final_interviews, "shift_counts": shift_counts,

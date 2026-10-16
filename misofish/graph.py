@@ -18,6 +18,7 @@ class Ontology(StrictModel):
     @field_validator("entity_types", "relationship_types", "actor_types")
     @classmethod
     def bounded_labels(cls, labels):
+        labels = [re.sub(r"\s+", " ", label).strip() for label in labels]
         if any(not label or len(label) > 80 for label in labels):
             raise ValueError("graph_type_label")
         return labels
@@ -128,9 +129,11 @@ def build_graph(config, model, cancelled=lambda: False, emit=None):
             raise ValueError("graph_cancelled")
         chunk = source[offset:offset + 6000]
         excerpts = list(dict.fromkeys(
-            [chunk[start:start + 1000] for start in range(0, len(chunk), 1000)] +
-            [quote.strip() for quote in re.split(r"(?<=[.!?])\s+|\n+", chunk)
-             if 0 < len(quote.strip()) <= 1000][:120]))
+            [segment for line in chunk.splitlines()
+             for start in range(0, len(line), 1000)
+             for segment in [line[start:start + 1000].strip()] if segment] +
+            [quote.strip() for quote in re.split(r"(?<=[.!?])\s+|\r?\n+", chunk)
+             if 0 < len(quote.strip()) <= 1000 and "\n" not in quote and "\r" not in quote][:120]))[:120]
         reference_type = create_model("ChunkReference", __base__=SourceReference,
             source_id=(Literal[source_id], ...), quote=(Literal[tuple(excerpts)], ...))
         node_type = create_model("ExtractedNode", __base__=GraphNode,

@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id), activeStates=new Set(['preparing','runn
 const views=['room','graph','transcript','synthesis'];
 let settings,current,history=[],stream,generation=0,busy=false,selectedPersona=null,graphRenderer,graphSignature='';
 let paused=false,viewerIndex=-1,viewerTick=0,followLive=true,playbackTimer,speed=1,seenSpeech=new Set(),drafts=new Map();
-const townMode=()=>current?.config?.platform_mode==='town';
+const courtMode=()=>current?.config?.platform_mode==='court',townMode=()=>['town','court'].includes(current?.config?.platform_mode);
 const node=(tag,text,className)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;if(className)element.className=className;return element;};
 const icon=(name)=>{const element=node('i');element.dataset.lucide=name;return element;};
 const icons=()=>MisofishAssets.createIcons({icons:MisofishAssets.icons});
@@ -12,14 +12,63 @@ function error(message){$('error').textContent=message;$('error').hidden=!messag
 async function api(path,body){const response=await fetch(path,{...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok)throw new Error(result.error||`Request failed (${response.status})`);return result;}
 function showView(view){for(const name of views){$('view-'+name).hidden=name!==view;$('tab-'+name).setAttribute('aria-selected',String(name===view));$('tab-'+name).tabIndex=name===view?0:-1;}if(view==='room')ConversationRoom.wake();if(view==='graph')renderGraph();}
 function speech(){return (current?.actions||[]).filter(action=>action.text&&action.kind!=='pass');}
+function branchSummary(tick){
+  const acts=(current?.actions||[]).filter(a=>a.platform==='court'&&a.round===tick);
+  const groupInfo=(current?.groups||[]).find(g=>g.tick===tick)?.groups?.[0];
+  const last=acts[acts.length-1];
+  const title=groupInfo?.stage||last?.data?.stage||`Future #${tick}`;
+  let outcome=last?.data?.branch_outcome,prob=last?.data?.win_probability;
+  if(!outcome&&last){
+    const txt=(last.text+' '+(last.view||'')).toLowerCase();
+    if(/dismiss|time-barred|barred|not maintainable|fails|acquit|reject/.test(txt)){outcome='defense_favour';prob=prob??24;}
+    else if(/decreed|convict|liable|allowed|succeeds|favour of complainant|favour of plaintiff/.test(txt)){outcome='complainant_favour';prob=prob??78;}
+    else{outcome='balanced_split';prob=prob??50;}
+  }
+  const label=outcome==='complainant_favour'?`Complainant Wins (${prob??75}%)`:outcome==='defense_favour'?`Defense Wins (${100-(prob??25)}%)`:acts.length?`Conditional / Split (${prob??50}%)`:'Pending Hearing';
+  const css=outcome==='complainant_favour'?'win-complainant':outcome==='defense_favour'?'win-defense':'win-split';
+  return {tick,title,acts,last,outcome,prob:prob??50,label,css};
+}
+function renderFutures(){
+  const strip=$('futures-strip');if(!strip)return;
+  if(!courtMode()||!current){strip.hidden=true;return;}
+  const total=Math.max(current.config?.rounds||0,current.groups?.length||0);
+  if(!total){strip.hidden=true;return;}
+  strip.hidden=false;strip.replaceChildren();
+  for(let t=1;t<=total;t++){
+    const info=branchSummary(t);
+    const btn=node('button',undefined,`future-card ${info.css}`);
+    btn.type='button';
+    btn.setAttribute('aria-pressed',String(viewerTick===t));
+    btn.append(node('span',info.label,'future-badge'),node('strong',info.title),node('small',info.last?`Verdict: ${info.last.text.slice(0,95)}...`:'Click to inspect this outcome branch','muted'));
+    btn.addEventListener('click',()=>{ConversationRoom.restartSpeech();viewerTick=t;paused=false;followLive=false;viewer();schedulePlayback();});
+    strip.append(btn);
+  }
+}
+function renderStrategyCard(action){
+  const card=$('strategy-card');if(!card)return;
+  if(!courtMode()||!action){card.hidden=true;return;}
+  const d=action.data||{},info=branchSummary(action.round||viewerTick||1);
+  card.hidden=false;card.replaceChildren();
+  const addBox=(heading,body)=>{const box=node('div',undefined,'strategy-box');box.append(node('strong',heading),node('span',body));card.append(box);};
+  addBox('If Opponent Argues / Asks',d.if_opponent_argues||'Threshold statutory compliance, notice timeline & burden of proof.');
+  addBox('What to State (Tactical Move)',d.tactical_move||action.view||action.text.slice(0,140));
+  addBox('Counter-Strategy & Authorities',(d.counter_strategy||'Anchor argument in statutory text & binding SC precedent.')+(d.rag_citations?.length?` [${d.rag_citations.slice(0,2).join('; ')}]`:''));
+  addBox(`Branch #${action.round||1} Outcome Meter`,`${info.label} · Complainant ${d.win_probability??info.prob}% / Defense ${100-(d.win_probability??info.prob)}%`);
+}
 function viewer(){
   if(paused)clearTimeout(playbackTimer);
-  const town=townMode(),items=speech(),action=town?null:items[viewerIndex],ticks=current?.groups?.length||0;
-  $('backlog').textContent=town?(ticks?`Tick ${viewerTick} of ${ticks}`:'Groups not formed yet'):`${Math.max(0,items.length-viewerIndex-1)} queued`;
+  const town=townMode(),court=courtMode(),items=speech(),action=town?null:items[viewerIndex],ticks=current?.groups?.length||0;
+  $('backlog').textContent=town?(ticks?`${court?'Future':'Tick'} ${viewerTick} of ${ticks}`:court?'Hearing not started yet':'Groups not formed yet'):`${Math.max(0,items.length-viewerIndex-1)} queued`;
   if(!town){
     $('speech-meta').textContent=action?`${current.agents.find(actor=>actor.id===action.agent_id)?.name||'Persona '+action.agent_id} / A${action.id} / ${action.kind==='interview'?`Final interview / ${shiftLabel(action.shift)}`:`${action.visibility||'legacy'} / ${action.engine_kind||action.kind}`}`:'No Speech Selected';
     $('selected-speech').textContent=action?.text||'No committed discussion yet.';
-  }else if(!viewerTick){$('speech-meta').textContent='Town Conversations';$('selected-speech').textContent='Every tick, random groups form and talk at the same time.';}
+    renderStrategyCard(null);
+  }else if(!viewerTick){
+    $('speech-meta').textContent=court?'Indian Courtroom Trial (Multiverse Decision Tree + Live Legal RAG)':'Town Conversations';
+    $('selected-speech').textContent=court?'Each Outcome Branch (Future #1..#N) tests a distinct litigation strategy with Presiding Judge, Opposing Counsel, Witnesses, and Jury Panel.':'Every tick, random groups form and talk at the same time.';
+    renderStrategyCard(null);
+  }
+  renderFutures();
   $('playback-pause').setAttribute('aria-pressed',String(paused));
   $('playback-pause').setAttribute('aria-label',paused?'Resume playback':'Pause playback');
   $('playback-pause').title=paused?'Resume playback':'Pause playback';
@@ -93,7 +142,7 @@ function renderFeed(){
   if(!current)return;
   const filter=$('agent-filter').value,host=$('feed'),fragment=document.createDocumentFragment();
   const actions=current.actions.filter(action=>action.text&&(filter==='all'||String(action.agent_id)===filter));
-  for(const action of actions){const item=node('article',undefined,'action');item.id='action-'+action.id;const heading=node('div',undefined,'action-head');heading.append(node('span','A'+action.id),node('strong',current.agents.find(actor=>actor.id===action.agent_id)?.name||'Persona '+action.agent_id),node('span',action.kind==='interview'?`Final interview / ${action.platform||'legacy'} / ${shiftLabel(action.shift)}`:action.platform==='town'?`Tick ${action.round} / Group ${action.data.group} / minute ${action.data.turn}`:`Tick ${action.round} / ${action.platform||'legacy'} / ${action.engine_kind||action.kind}`));if(action.visibility==='private')heading.append(node('span','Private Group','private'));item.append(heading,node('p',action.text));if(action.view)item.append(node('p',`Thinking now (${shiftLabel(action.shift)}): ${action.view}`,'provenance'));if(action.reply_to)item.append(node('span','Replies to '),evidence(action.reply_to));if(action.observed_effect_ids?.length)item.append(node('p',`${action.observed_effect_ids.length} previously observed effects`,'provenance'));item.addEventListener('click',()=>{viewerIndex=speech().findIndex(record=>record.id===action.id);if(action.platform==='town')viewerTick=action.round;paused=true;followLive=false;viewer();});fragment.append(item);}
+  for(const action of actions){const item=node('article',undefined,'action');item.id='action-'+action.id;const heading=node('div',undefined,'action-head');const actor=current.agents.find(person=>person.id===action.agent_id);heading.append(node('span','A'+action.id),node('strong',actor?`${actor.name}${actor.role?` (${actor.role})`:''}`:'Persona '+action.agent_id),node('span',action.kind==='interview'?`Final interview / ${action.platform||'legacy'} / ${shiftLabel(action.shift)}`:action.platform==='court'?`${action.data?.stage||`Future #${action.round}`} / step ${action.data?.turn}`:action.platform==='town'?`Tick ${action.round} / Group ${action.data.group} / minute ${action.data.turn}`:`Tick ${action.round} / ${action.platform||'legacy'} / ${action.engine_kind||action.kind}`));if(action.visibility==='private')heading.append(node('span','Private Group','private'));item.append(heading,node('p',action.text));if(action.data?.if_opponent_argues||action.data?.tactical_move)item.append(node('p',`If Opponent Argues: ${action.data.if_opponent_argues||'-'} → What to State: ${action.data.tactical_move||'-'} (${action.data.counter_strategy||''})`,'provenance'));if(action.data?.rag_citations?.length)item.append(node('p',`Live RAG Authorities: ${action.data.rag_citations.join(' · ')}`,'provenance'));if(action.view)item.append(node('p',`Assessment (${shiftLabel(action.shift)}): ${action.view}`,'provenance'));if(action.reply_to)item.append(node('span','Replies to '),evidence(action.reply_to));if(action.observed_effect_ids?.length)item.append(node('p',`${action.observed_effect_ids.length} previously observed effects`,'provenance'));item.addEventListener('click',()=>{viewerIndex=speech().findIndex(record=>record.id===action.id);if(['town','court'].includes(action.platform))viewerTick=action.round;paused=true;followLive=false;viewer();renderStrategyCard(action);});fragment.append(item);}
   if(!actions.length)fragment.append(node('p','No committed speech.','muted'));host.replaceChildren(fragment);
 }
 function renderDecisions(){
@@ -102,7 +151,7 @@ function renderDecisions(){
     const actor=current.agents.find(person=>person.id===draft.agent_id);
     $('live-turns').append(node('p',`${actor?.name||'Persona '+draft.agent_id} / ${draft.platform} / Deciding`,'muted'));
   }
-  $('room-state').textContent=drafts.size?`${drafts.size} deciding`:townMode()?'Town Conversations':(current.version===2?'Reddit-Owned Shared Room':'Legacy Conversation Record');
+  $('room-state').textContent=drafts.size?`${drafts.size} deciding`:courtMode()?'Indian Courtroom Trial':townMode()?'Town Conversations':(current.version===2?'Reddit-Owned Shared Room':'Legacy Conversation Record');
 }
 function finalThoughts(host){
   let finals=current.actions.filter(action=>action.kind==='interview'&&action.text);
@@ -136,7 +185,25 @@ function renderGraph(){
   const kind=$('graph-kind').value,signature=current.id+kind+JSON.stringify(kind==='knowledge'?current.graph:current.actions);
   if(signature===graphSignature){graphRenderer?.resize();graphRenderer?.fit(undefined,30);return;}
   graphSignature=signature;graphRenderer?.destroy();const elements=[];
-  if(kind==='knowledge'){
+  if(kind==='decision'){
+    elements.push({data:{id:'case-root',label:'Case Dispute Scenario',color:'#1e293b'}});
+    const total=Math.max(current.config?.rounds||0,current.groups?.length||0);
+    for(let t=1;t<=total;t++){
+      const info=branchSummary(t),bId=`branch-${t}`;
+      const bColor=info.outcome==='complainant_favour'?'#14705e':info.outcome==='defense_favour'?'#b91c1c':'#b45309';
+      elements.push({data:{id:bId,label:`Future #${t}: ${info.label}`,color:bColor,detail:info.title}});
+      elements.push({data:{id:`edge-root-${t}`,source:'case-root',target:bId,label:`Branch ${t}`}});
+      let prev=bId;
+      info.acts.forEach((act,idx)=>{
+        const actor=current.agents.find(p=>p.id===act.agent_id);
+        const nId=`act-${act.id}`,move=act.data?.tactical_move||`${actor?.name||'Step'}: ${act.text.slice(0,42)}...`;
+        const isVerdict=idx===info.acts.length-1;
+        elements.push({data:{id:nId,label:isVerdict?`VERDICT #${t}: ${info.label}`:`${idx+1}. ${(actor?.role||actor?.name||'Turn').split(' ')[0]}: ${move.slice(0,38)}`,color:isVerdict?bColor:'#475569',actionId:act.id}});
+        elements.push({data:{id:`edge-${prev}-${nId}`,source:prev,target:nId,label:isVerdict?'Verdict':`Step ${idx+1}`}});
+        prev=nId;
+      });
+    }
+  }else if(kind==='knowledge'){
     for(const item of current.graph?.nodes||[])elements.push({data:{id:item.id,label:item.name,type:item.kind,synthetic:item.synthetic}});
     for(const item of current.graph?.edges||[])elements.push({data:{id:item.id,source:item.source,target:item.target,label:item.kind}});
   }else{
@@ -161,14 +228,22 @@ function renderGraph(){
     for(const [id,member] of members)if(groups.has(member.group))elements.push({data:{id:'membership-'+id,source:'persona-'+member.actor,target:'group-'+member.group,label:'member'}});
   }
   $('graph-count').textContent=`${elements.filter(item=>!item.data.source).length} nodes / ${elements.filter(item=>item.data.source).length} links`;
-  graphRenderer=MisofishAssets.cytoscape({container:$('graph-canvas'),elements,style:[{selector:'node',style:{'background-color':'#14705e','label':'data(label)','font-family':'IBM Plex Sans','font-size':11,'color':'#202d32','text-valign':'bottom','text-margin-y':8,'width':26,'height':26}},{selector:'edge',style:{'width':1.4,'line-color':'#9aafb4','target-arrow-color':'#9aafb4','target-arrow-shape':'triangle','curve-style':'bezier','label':'data(label)','font-size':9,'color':'#54676d','text-background-color':'#f5f8f8','text-background-opacity':1,'text-background-padding':'3px'}},{selector:':selected',style:{'background-color':'#bd503e','line-color':'#bd503e'}}],layout:{name:'cose',animate:false,randomize:false,nodeRepulsion:()=>500000,padding:50},minZoom:.2,maxZoom:4});
-  graphRenderer.on('tap','node,edge',event=>{const id=event.target.id();if(id.startsWith('persona-'))selectPersona(Number(id.slice(8)));else if(kind==='knowledge')inspectEntity(id);else $('inspector-content').replaceChildren(node('h3',event.target.data('label')),node('p','Simulation Membership','provenance'));});
+  graphRenderer=MisofishAssets.cytoscape({container:$('graph-canvas'),elements,style:[{selector:'node',style:{'background-color':ele=>ele.data('color')||'#14705e','label':'data(label)','font-family':'IBM Plex Sans','font-size':11,'color':'#202d32','text-valign':'bottom','text-margin-y':8,'width':26,'height':26}},{selector:'edge',style:{'width':1.4,'line-color':'#9aafb4','target-arrow-color':'#9aafb4','target-arrow-shape':'triangle','curve-style':'bezier','label':'data(label)','font-size':9,'color':'#54676d','text-background-color':'#f5f8f8','text-background-opacity':1,'text-background-padding':'3px'}},{selector:':selected',style:{'background-color':'#bd503e','line-color':'#bd503e'}}],layout:{name:kind==='decision'?'breadthfirst':'cose',directed:true,animate:false,randomize:false,nodeRepulsion:()=>500000,padding:40},minZoom:.2,maxZoom:4});
+  graphRenderer.on('tap','node,edge',event=>{
+    const id=event.target.id(),actId=event.target.data('actionId');
+    if(actId){
+      const act=current.actions.find(a=>a.id===actId),actor=current.agents.find(p=>p.id===act?.agent_id);
+      if(act)$('inspector-content').replaceChildren(node('span',`Future #${act.round} · Step ${act.data?.turn}`,'status'),node('h3',`${actor?.name||'Speaker'} (${actor?.role||''})`),node('p',act.text),node('h3','If Opponent Argues'),node('p',act.data?.if_opponent_argues||'Threshold challenge'),node('h3','What to State & Counter-Strategy'),node('p',`${act.data?.tactical_move||''} — ${act.data?.counter_strategy||''}`),node('p',act.data?.rag_citations?.join(' · ')||'','provenance'));
+    }else if(id.startsWith('persona-'))selectPersona(Number(id.slice(8)));
+    else if(kind==='knowledge')inspectEntity(id);
+    else $('inspector-content').replaceChildren(node('h3',event.target.data('label')),node('p',event.target.data('detail')||'Decision Tree Branch','provenance'));
+  });
   $('graph-list').replaceChildren();for(const item of elements.filter(element=>!element.data.source)){const button=node('button',item.data.label);button.addEventListener('click',()=>{graphRenderer.elements().unselect();graphRenderer.getElementById(item.data.id).select();if(kind==='knowledge')inspectEntity(item.data.id);else if(item.data.id.startsWith('persona-'))selectPersona(Number(item.data.id.slice(8)));});$('graph-list').append(button);}
 }
 function controls(){const active=history.some(run=>activeStates.has(run.status))||activeStates.has(current?.status);$('prepare').disabled=!settings?.configured||active||busy;$('start').hidden=current?.status!=='ready';$('start').disabled=busy||active;$('cancel').hidden=!activeStates.has(current?.status);$('cancel').disabled=busy;$('export').hidden=!current?.actions.length;if(current)$('export').href=`/api/runs/${current.id}/export`;}
 function renderRun(run){
   current=run;
-  $('status').textContent=`${run.status}${run.config.platform_mode==='town'?' / Town':run.version===2?' / OASIS':' / Legacy'}`;
+  $('status').textContent=`${run.status}${run.config.platform_mode==='court'?' / Courtroom':run.config.platform_mode==='town'?' / Town':run.version===2?' / OASIS':' / Legacy'}`;
   $('run-title').textContent=run.config.scenario;
   $('agent-metric').textContent=run.agents.length||run.config.agent_count;
   $('round-metric').textContent=`${run.round} / ${run.config.rounds} ticks`;
@@ -176,7 +251,7 @@ function renderRun(run){
   $('token-metric').textContent=`${((run.usage?.input_tokens||0)+(run.usage?.output_tokens||0)).toLocaleString()} reported tokens`;
   $('progress').max=run.config.rounds;$('progress').value=run.round;
   $('run-error').textContent=run.error||'';
-  $('room-state').textContent=townMode()?'Town Conversations':current.version===2?'Reddit-Owned Shared Room':'Legacy Conversation Record';
+  $('room-state').textContent=courtMode()?'Indian Courtroom Trial':townMode()?'Town Conversations':current.version===2?'Reddit-Owned Shared Room':'Legacy Conversation Record';
   renderRoster();renderFeed();renderReport();viewer();
   if(!$('view-graph').hidden)renderGraph();
   controls();
@@ -212,15 +287,32 @@ async function selectRun(id){
     stream.onerror=()=>{if(ticket===generation)$('room-state').textContent='Reconnecting';};
   }catch(exception){error(exception.message);}
 }
+function syncModeInputs(){
+  const isCourt=$('platform-mode')?.value==='court';
+  if($('agents-label'))$('agents-label').textContent=isCourt?'Jury Members':'Personas';
+  if($('rounds-label'))$('rounds-label').textContent=isCourt?'Outcome Branches':'Ticks';
+  if(isCourt){
+    $('agents').min=1;$('agents').max=12;
+    if(Number($('agents').value)>12)$('agents').value=3;
+  }else if(settings){
+    $('agents').min=1;$('agents').max=settings.max_agents||1000;
+    if(Number($('agents').value)<=6)$('agents').value=settings.default_agents||10;
+  }
+  const j=Number($('agents')?.value||3);
+  if($('cast-hint')){$('cast-hint').hidden=!isCourt;$('cast-hint').textContent=`Courtroom cast: 7 fixed officers (Presiding Judge, 4 Advocates, 2 Witnesses) + ${j} Jury Member${j===1?'':'s'} = ${7+j} total.`;}
+}
+$('platform-mode')?.addEventListener('change',syncModeInputs);
+$('agents')?.addEventListener('input',syncModeInputs);
 async function mutation(path,body){busy=true;error('');controls();try{const run=await api(path,body);if(run.id)await selectRun(run.id);return run;}catch(exception){error(exception.message);}finally{busy=false;controls();}}
-$('scenario-form').addEventListener('submit',event=>{event.preventDefault();if(!$('scenario-form').reportValidity())return;mutation('/api/runs',{scenario:$('scenario').value,source:$('source').value,agent_count:Number($('agents').value),rounds:Number($('rounds').value),population_mode:$('population-mode').value,platform_mode:$('platform-mode').value,conversation_minutes:Number($('conversation-minutes').value),model_call_budget:Number($('call-budget').value),minutes_per_round:Number($('minutes').value),start_hour:Number($('hour').value),seed:Number($('seed').value),readable_dwell:Number($('dwell').value)});});
+$('scenario-form').addEventListener('submit',event=>{event.preventDefault();if(!$('scenario-form').reportValidity())return;const isCourt=$('platform-mode').value==='court',agentCount=isCourt?7+Number($('agents').value):Number($('agents').value);mutation('/api/runs',{scenario:$('scenario').value,source:$('source').value,agent_count:agentCount,rounds:Number($('rounds').value),population_mode:$('population-mode').value,platform_mode:$('platform-mode').value,conversation_minutes:Number($('conversation-minutes').value),model_call_budget:Number($('call-budget').value),minutes_per_round:Number($('minutes').value),start_hour:Number($('hour').value),seed:Number($('seed').value),readable_dwell:Number($('dwell').value)});});
+$('retrieve-legal')?.addEventListener('click',async()=>{busy=true;error('');controls();try{const result=await api('/api/legal/retrieve',{scenario:$('scenario').value,domain:$('legal-domain').value});if(!$('scenario').value.trim())$('scenario').value=result.scenario;$('source').value=result.source;if($('legal-status')){$('legal-status').textContent=`Retrieved ${result.statutes_count} statutes & ${result.precedents_count} precedents (${result.domain_label})`;$('legal-status').hidden=false;}}catch(exception){error(exception.message);}finally{busy=false;controls();}});
 $('file').addEventListener('change',async()=>{try{const file=$('file').files[0];if(!file)return;if(file.size>80000)throw new Error('Source file exceeds the import limit.');const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());if(text.length>20000)throw new Error('Source exceeds 20,000 characters.');$('source').value=text;}catch(exception){error(exception.message);}});
 $('start').addEventListener('click',()=>mutation(`/api/runs/${current.id}/start`,{}));
 $('cancel').addEventListener('click',async()=>{const result=await mutation(`/api/runs/${current.id}/cancel`,{});if(result)$('run-error').textContent=result.message;});
 $('refresh').addEventListener('click',async()=>{try{await refreshHistory();if(current)await selectRun(current.id);}catch(exception){error(exception.message);}});
 $('agent-filter').addEventListener('change',renderFeed);$('graph-kind').addEventListener('change',()=>{graphSignature='';renderGraph();});
 window.addEventListener('persona-select',event=>selectPersona(event.detail));
-window.addEventListener('speech-start',event=>{const action=event.detail,actor=current?.agents.find(person=>person.id===action.agent_id);$('speech-meta').textContent=`${actor?.name||'Persona '+action.agent_id} / Tick ${action.round} / Group ${action.data.group} / minute ${action.data.turn}`;$('selected-speech').textContent=action.text;});
+window.addEventListener('speech-start',event=>{const action=event.detail,actor=current?.agents.find(person=>person.id===action.agent_id);const rag=action.data?.rag_citations?.length?` · RAG: ${action.data.rag_citations.slice(0,2).join('; ')}`:'';$('speech-meta').textContent=action.platform==='court'?`${actor?.name||'Persona '+action.agent_id}${actor?.role?` (${actor.role})`:''} / ${action.data?.stage||`Future #${action.round}`} / step ${action.data?.turn}${rag}`:`${actor?.name||'Persona '+action.agent_id} / Tick ${action.round} / Group ${action.data.group} / minute ${action.data.turn}`;$('selected-speech').textContent=action.text;renderStrategyCard(action);});
 $('pause-motion').addEventListener('click',()=>{const stopped=ConversationRoom.pause();$('pause-motion').setAttribute('aria-pressed',String(stopped));});
 $('playback-pause').addEventListener('click',()=>{paused=!paused;followLive=false;viewer();schedulePlayback();});
 $('playback-step').addEventListener('click',()=>{paused=true;followLive=false;if(townMode())viewerTick=Math.min(viewerTick+1,current.groups?.length||0);else viewerIndex=Math.min(viewerIndex+1,speech().length-1);clearTimeout(playbackTimer);viewer();});
@@ -228,5 +320,5 @@ $('catch-up').addEventListener('click',()=>{paused=false;followLive=true;viewerI
 $('playback-speed').addEventListener('change',()=>{speed=Number($('playback-speed').value);viewer();schedulePlayback();});
 $('replay').addEventListener('click',()=>{ConversationRoom.restartSpeech();viewerIndex=speech().length?0:-1;viewerTick=current?.groups?.length?1:0;paused=false;followLive=false;viewer();schedulePlayback();});
 for(const name of views){$('tab-'+name).addEventListener('click',()=>showView(name));$('tab-'+name).addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const index=event.key==='Home'?0:event.key==='End'?3:(views.indexOf(name)+(event.key==='ArrowRight'?1:3))%4;showView(views[index]);$('tab-'+views[index]).focus();});}
-async function initialize(){icons();if(matchMedia('(max-width:700px)').matches)$('experiment-settings').open=false;try{settings=await api('/api/config');$('model-name').textContent=settings.model;$('setup').hidden=settings.configured;$('agents').max=settings.max_agents;$('agents').value=settings.default_agents||10;$('population-limit').textContent=`Default: ${settings.default_agents||10} / Deployment Ceiling: ${settings.max_agents}`;await refreshHistory();const run=history.find(item=>activeStates.has(item.status))||history[0];if(run)await selectRun(run.id);}catch(exception){error(exception.message);}controls();}
+async function initialize(){icons();if(matchMedia('(max-width:700px)').matches)$('experiment-settings').open=false;try{settings=await api('/api/config');$('model-name').textContent=settings.model;$('setup').hidden=settings.configured;syncModeInputs();$('population-limit').textContent=`Courtroom: 7 Fixed Officers + 1..12 Jury / Ceiling: ${settings.max_agents}`;await refreshHistory();const run=history.find(item=>activeStates.has(item.status))||history[0];if(run)await selectRun(run.id);}catch(exception){error(exception.message);}controls();}
 initialize();
