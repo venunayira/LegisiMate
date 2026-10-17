@@ -11,6 +11,7 @@ All submission materials, code, documentation, and presentation artifacts are in
 | **Category Specification** | **Accessibility / Social Good / Sustainability** (*Sustainability & Social Impact — Access to Legal Preparation*) | Ready |
 | **Clear Proposal (Deck converted to PDF)** | [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf) (14-slide widescreen PDF) & [LegisiMate-presentation.html](LegisiMate-presentation.html) | Ready |
 | **Functional Prototype (Google Cloud AI & Cloud Run / Firebase)** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [legisimate/core.py](legisimate/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) + pre-seeded verified showcase case ([data/showcase_cases.json](data/showcase_cases.json)) | Ready |
+| **Live Cloud Run App** | [https://legisimate-587527883402.europe-west1.run.app/](https://legisimate-587527883402.europe-west1.run.app/) | Live |
 | **Public GitHub Repository** | `https://github.com/venunayira/LegisiMate` | Live |
 | **3-Minute Demo Video Link (YouTube / Vimeo / Google Drive)** | Follow the exact 3-minute recording script in Section 4 below | Script Ready |
 
@@ -125,6 +126,8 @@ Once deployed, the Cloud Run URL immediately serves:
 - **Live Case-Preparation Workbench:** `https://<your-cloud-run-url>/`
 - **Pre-Seeded Verified Showcase Case:** `https://<your-cloud-run-url>/?case=c810d87708f94f318b01a2d80dc570e9`
 - **Health Check Endpoint:** `https://<your-cloud-run-url>/healthz`
+
+The submitted public deployment is [https://legisimate-587527883402.europe-west1.run.app/](https://legisimate-587527883402.europe-west1.run.app/).
 
 ---
 
