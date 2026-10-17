@@ -9,7 +9,7 @@ LegisiMate is an evidence-backed legal preparation workbench for individuals, sm
 | Requirement | Artifact / Link |
 | --- | --- |
 | **Category Specification** | **Accessibility / Social Good / Sustainability** (*Sustainability & Social Impact*) |
-| **Proposal Deck (PDF)** | [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf) (14-slide widescreen PDF converted from [LegisiMate-presentation.html](LegisiMate-presentation.html)) |
+| **Proposal Deck (PDF)** | [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf) (14 slides on the official AI Builder Cup submission template; editable [LegisiMate-Proposal-Deck.pptx](LegisiMate-Proposal-Deck.pptx)) |
 | **Submission Guide & 3-Min Video Script** | [SUBMISSION.md](SUBMISSION.md) (Full rubric alignment, Cloud Run deploy commands, and 3-minute video script) |
 | **Google Cloud AI & Cloud Run / Firebase** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [legisimate/core.py](legisimate/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) |
 | **Live Cloud Run App** | [legisimate-587527883402.europe-west1.run.app](https://legisimate-587527883402.europe-west1.run.app/) |

@@ -9,7 +9,7 @@ All submission materials, code, documentation, and presentation artifacts are in
 | Mandatory Requirement | Artifact / Value in Repository | Status |
 | --- | --- | --- |
 | **Category Specification** | **Accessibility / Social Good / Sustainability** (*Sustainability & Social Impact — Access to Legal Preparation*) | Ready |
-| **Clear Proposal (Deck converted to PDF)** | [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf) (14-slide widescreen PDF) & [LegisiMate-presentation.html](LegisiMate-presentation.html) | Ready |
+| **Clear Proposal (Deck converted to PDF)** | [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf) (14 slides on the official AI Builder Cup template) & [LegisiMate-Proposal-Deck.pptx](LegisiMate-Proposal-Deck.pptx) | Ready |
 | **Functional Prototype (Google Cloud AI & Cloud Run / Firebase)** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [legisimate/core.py](legisimate/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) + pre-seeded verified showcase case ([data/showcase_cases.json](data/showcase_cases.json)) | Ready |
 | **Live Cloud Run App** | [https://legisimate-587527883402.europe-west1.run.app/](https://legisimate-587527883402.europe-west1.run.app/) | Live |
 | **Public GitHub Repository** | `https://github.com/venunayira/LegisiMate` | Live |
@@ -85,7 +85,7 @@ Verification on 2026-10-17: all 124 backend tests passed, including the optional
 ### Feasibility, Scalability & Google Cloud Compatibility
 - **Stateless Cloud Run Container + Pre-Built Legal Index:** The [Dockerfile](Dockerfile) compiles `legal_poc.db` (`7,143` provisions + `10,139` judgment chunks) during image build so Cloud Run instances start in `< 1 second` with zero external database dependencies.
 - **Google Gemini & Vertex AI Native Adapter:** [legisimate/core.py](legisimate/core.py) (`GeminiClient`) connects directly to Google AI Studio (`GEMINI_API_KEY`) or Google Cloud Vertex AI (`GOOGLE_CLOUD_PROJECT` using Cloud Run's default service account via the GCE metadata server—no API keys baked into the container).
-- **International Scalability via Versioned Jurisdiction Packs:** As detailed in Slides 09–12 of [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf), the core engine (deterministic rule module + scoped hybrid RAG + source-bound passage contract + isolated multi-role rehearsal) is jurisdiction-agnostic and scales to new legal domains and countries through versioned, rights-verified Jurisdiction Packs (Akoma Ntoso / ELI / USLM).
+- **International Scalability via Versioned Jurisdiction Packs:** As outlined on Slide 13 of [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf), the core engine (deterministic rule module + scoped hybrid RAG + source-bound passage contract + isolated multi-role rehearsal) is jurisdiction-agnostic and scales to new legal domains and countries through versioned, rights-verified Jurisdiction Packs (Akoma Ntoso / ELI / USLM).
 
 ---
 
