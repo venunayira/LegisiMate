@@ -14,6 +14,65 @@ from test_core import FakeModel, FixtureEngine, roster
 
 
 class ServerTests(unittest.TestCase):
+    def test_casework_and_legacy_runs_share_an_atomic_provider_gate(self):
+        self.assertIs(self.manager.lock, self.manager.casework.lock)
+        self.manager.casework.active = "case-analysis"
+        with self.assertRaisesRegex(RuntimeError, "case analysis"):
+            self.manager.create({"scenario": "A sample case", "platform_mode": "court"})
+        self.manager.casework.active = None
+        self.manager.active = "legacy-experiment"
+        with self.assertRaisesRegex(RuntimeError, "legacy experiment"):
+            self.manager.casework.create({"scenario": "A supplier's cheque was returned unpaid after a dispute.", "consent": True})
+        self.manager.active = None
+
+    def test_casework_http_contract_consent_and_calendar_preview(self):
+        from test_casework import CaseModel
+        self.manager.casework.model = CaseModel()
+        server = make_server(self.manager, 0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_port}"
+
+        def request(path, body=None, origin=None):
+            headers = {"Content-Type": "application/json"}
+            if origin:
+                headers["Origin"] = origin
+            req = urllib.request.Request(base + path, data=json.dumps(body).encode() if body is not None else None, headers=headers)
+            try:
+                response = urllib.request.urlopen(req, timeout=5)
+            except urllib.error.HTTPError as error:
+                response = error
+            with response:
+                return response.status, response.read()
+
+        try:
+            preview = {"facts": {"memo_received_on": "2026-10-01"}, "as_of": "2026-10-17"}
+            code, content = request("/api/cases/timeline", preview)
+            self.assertEqual(code, 200)
+            self.assertEqual(json.loads(content)["deadlines"][0]["date"], "2026-10-31")
+            code, content = request("/api/authorities/IND_central_2189_s138_p0")
+            self.assertEqual(code, 200)
+            self.assertEqual(json.loads(content)["kind"], "statute")
+            self.assertEqual(request("/api/authorities/not-a-source")[0], 404)
+            payload = {"scenario": "A supplier's cheque was returned unpaid after a commercial dispute.", "consent": True}
+            self.assertEqual(request("/api/cases", {**payload, "consent": False})[0], 422)
+            self.assertEqual(request("/api/cases", payload, "https://evil.example")[0], 403)
+            code, content = request("/api/cases", payload)
+            self.assertEqual(code, 202)
+            identity = json.loads(content)["id"]
+            self.manager.casework.worker.join(10)
+            self.assertEqual(json.loads(request("/api/cases/" + identity)[1])["status"], "completed")
+            self.assertIn(b"LegisiMate", request("/api/cases/" + identity + "/export")[1])
+            self.assertEqual(request("/api/cases/" + identity + "/delete", {})[0], 200)
+            self.assertEqual(request("/api/cases/" + identity)[0], 404)
+        finally:
+            self.manager.casework.stop.set()
+            if self.manager.casework.worker:
+                self.manager.casework.worker.join(10)
+            server.shutdown()
+            server.server_close()
+            thread.join(3)
+
     def test_graph_quote_failure_has_safe_specific_diagnostic(self):
         original = self.manager.model.generate
         def bad_quote(*args, **kwargs):
@@ -326,7 +385,9 @@ class ServerTests(unittest.TestCase):
         thread.start()
         base = f"http://127.0.0.1:{server.server_port}"
         try:
-            for path, expected in [("/", b"Town square map"), ("/app.js", b"EventSource"),
+            for path, expected in [("/", b"LegisiMate"), ("/legacy", b"Town square map"),
+                                   ("/cases.js", b"/api/cases"), ("/cases.css", b"focus-visible"),
+                                   ("/app.js", b"EventSource"),
                                    ("/style.css", b"focus-visible"), ("/room.js", b"getContext('2d')"),
                                    ("/room.css", b"prefers-reduced-motion")]:
                 with urllib.request.urlopen(base + path, timeout=3) as response:

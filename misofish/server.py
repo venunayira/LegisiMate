@@ -17,6 +17,7 @@ from urllib.parse import parse_qs, urlsplit
 from openai import APIError, APITimeoutError, AuthenticationError, OpenAI, RateLimitError
 from pydantic import ValidationError
 
+from .casework import CaseFacts, CaseWorkbench, assess_timeline, export_brief, read_authority
 from .core import (Agent, Config, DEFAULT_AGENT_COUNT, DISCLAIMER, MAX_AGENTS, MAX_ROUNDS, Model,
                    generate_grounded_report, markdown, prepare_population)
 from .court import court_calls, run_court
@@ -119,8 +120,9 @@ class Manager:
         self.model = model
         self.engine = engine or Engine()
         self.graph_store = GraphStore(store.path)
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.active = None
+        self.casework = CaseWorkbench(store.path, model, lock=self.lock, legacy_active=lambda: self.active)
         self.worker = None
         self.stop = threading.Event()
         self.changed = threading.Condition()
@@ -146,6 +148,8 @@ class Manager:
             return run
 
     def _available(self, config=None):
+        if self.casework.active:
+            raise RuntimeError("A case analysis is active. Stop it before starting a legacy experiment.")
         if self.active:
             raise RuntimeError("One simulation is already active. Wait or cancel it before starting another.")
         if self.model is None:
@@ -461,6 +465,21 @@ def make_server(manager, port=8000):
                                      "configured": manager.model is not None, "disclaimer": DISCLAIMER})
                 elif path == "/api/runs":
                     self.reply(200, manager.store.list())
+                elif path == "/api/cases":
+                    self.reply(200, manager.casework.list())
+                elif path.startswith("/api/authorities/"):
+                    source = read_authority(path.removeprefix("/api/authorities/"))
+                    if source is None:
+                        raise KeyError("Source not found.")
+                    self.reply(200, source)
+                elif path.startswith("/api/cases/"):
+                    parts = path.strip("/").split("/")
+                    if len(parts) == 3:
+                        self.reply(200, manager.casework.get(parts[2]))
+                    elif len(parts) == 4 and parts[3] == "export":
+                        self.reply(200, export_brief(manager.casework.get(parts[2])).encode(), "text/markdown; charset=utf-8")
+                    else:
+                        self.reply(404, {"error": "Not found."})
                 elif path.startswith("/api/runs/"):
                     parts = path.strip("/").split("/")
                     if len(parts) == 3:
@@ -471,8 +490,8 @@ def make_server(manager, port=8000):
                         self.reply(200, markdown(manager.store.get(parts[2])).encode(), "text/markdown; charset=utf-8")
                     else:
                         self.reply(404, {"error": "Not found."})
-                elif path in {"/", "/app.js", "/style.css", "/room.js", "/room.css"}:
-                    asset = "index.html" if path == "/" else path[1:]
+                elif path in {"/", "/legacy", "/app.js", "/style.css", "/room.js", "/room.css", "/cases.js", "/cases.css"}:
+                    asset = "cases.html" if path == "/" else "index.html" if path == "/legacy" else path[1:]
                     mime = "text/html" if asset.endswith('.html') else "text/javascript" if asset.endswith('.js') else "text/css"
                     self.reply(200, (ROOT / "web" / asset).read_bytes(), mime + "; charset=utf-8")
                 elif path in assets:
@@ -504,6 +523,18 @@ def make_server(manager, port=8000):
                 path = urlsplit(self.path).path.strip("/").split("/")
                 if path == ["api", "runs"]:
                     self.reply(202, manager.create(body))
+                elif path == ["api", "cases"]:
+                    if manager.active:
+                        raise RuntimeError("A legacy experiment is active. Stop it before analysing a case.")
+                    self.reply(202, manager.casework.create(body))
+                elif path == ["api", "cases", "timeline"]:
+                    if not isinstance(body, dict) or set(body) != {"facts", "as_of"} or not isinstance(body["as_of"], str):
+                        raise ValueError("Invalid timeline request.")
+                    self.reply(200, assess_timeline(CaseFacts.model_validate(body["facts"]), body["as_of"]))
+                elif len(path) == 4 and path[:2] == ["api", "cases"] and path[3] in {"cancel", "delete"}:
+                    if body != {}:
+                        raise ValueError("Use an empty JSON object.")
+                    self.reply(200, getattr(manager.casework, path[3])(path[2]))
                 elif path == ["api", "legal", "retrieve"]:
                     if not isinstance(body, dict) or set(body) - {"scenario", "domain"}:
                         raise ValueError("Invalid legal retrieval request.")
@@ -521,9 +552,14 @@ def make_server(manager, port=8000):
             except (UnicodeDecodeError, json.JSONDecodeError):
                 self.reply(400, {"error": "Invalid UTF-8 JSON."})
             except ValidationError:
-                self.reply(422, {"error": f"Invalid configuration. Scenario: 1..2000 characters; source: up to 20000; population: integer 1..{MAX_AGENTS}; ticks: integer 1..{MAX_ROUNDS}. Check run settings and use no extra fields."})
+                message = ("Review the case details, dates and consent. Case text must contain 25..6000 characters; dates must be valid, chronological YYYY-MM-DD values."
+                           if path[:2] == ["api", "cases"] else
+                           f"Invalid configuration. Scenario: 1..2000 characters; source: up to 20000; population: integer 1..{MAX_AGENTS}; ticks: integer 1..{MAX_ROUNDS}. Check run settings and use no extra fields.")
+                self.reply(422, {"error": message})
             except ValueError:
-                self.reply(422, {"error": "Invalid request or roster."})
+                message = ("Invalid case request or dates. Use YYYY-MM-DD; completed-event dates cannot be after the assessment date."
+                           if path[:2] == ["api", "cases"] else "Invalid request or roster.")
+                self.reply(422, {"error": message})
             except KeyError:
                 self.reply(404, {"error": "Run not found."})
             except RuntimeError as exc:
@@ -561,8 +597,11 @@ def main():
             pass
         finally:
             manager.stop.set()
+            manager.casework.stop.set()
             if manager.worker:
                 manager.worker.join()
+            if manager.casework.worker:
+                manager.casework.worker.join()
             server.server_close()
             if model:
                 model.client.close()

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12604b">
+  <title>LegisiMate | Case Preparation</title>
+  <link rel="stylesheet" href="/assets/vendor.css">
+  <link rel="stylesheet" href="/room.css">
+  <link rel="stylesheet" href="/cases.css">
+  <script src="/assets/vendor.js" defer></script>
+  <script src="/room.js" defer></script>
+  <script src="/cases.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#workspace">Skip to case</a>
+  <div class="app-shell">
+    <aside class="case-sidebar" aria-label="Cases">
+      <a class="brand" href="/"><i data-lucide="scale" aria-hidden="true"></i><span>LegisiMate</span></a>
+      <p class="brand-caption">Justice begins with preparation.</p>
+      <button id="new-case" class="primary full" type="button"><i data-lucide="plus" aria-hidden="true"></i>New case</button>
+      <div class="sidebar-heading"><h2>Saved cases</h2><button id="refresh-cases" class="icon-button" type="button" aria-label="Refresh saved cases" title="Refresh saved cases"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div>
+      <div id="case-history" class="case-history"><p class="muted">No saved cases.</p></div>
+      <div class="sidebar-footer"><span class="corpus-indicator"><span class="status-dot"></span><span id="corpus-state">Connecting to corpus</span></span><span id="provider-state" class="muted">Connecting to provider</span><a href="/legacy">Legacy experiments<i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
+    </aside>
+    <main id="workspace" class="case-main" tabindex="-1">
+      <header class="case-header">
+        <div><p class="eyebrow">Indian jurisdiction / Section 138 NI Act</p><h1 id="page-title">Case details</h1><p id="case-subtitle" class="muted">Cheque dishonour</p></div>
+        <div class="header-actions"><span id="case-status" class="case-status" role="status">New case</span><button id="stop-analysis" type="button" hidden><i data-lucide="square" aria-hidden="true"></i>Stop</button><a id="download-brief" class="icon-button" aria-label="Download case brief" title="Download case brief" download="legisimate-brief.md" hidden><i data-lucide="download" aria-hidden="true"></i></a><button id="delete-case" class="icon-button danger-icon" type="button" aria-label="Delete saved case" title="Delete saved case" hidden><i data-lucide="trash-2" aria-hidden="true"></i></button></div>
+      </header>
+      <p id="app-error" class="alert error" role="alert" hidden></p>
+      <p id="provider-warning" class="alert warning" hidden>The AI provider is unavailable. Calendar checks remain available.</p>
+      <div id="analysis-progress" class="analysis-progress" hidden><span class="activity-dot"></span><span id="analysis-phase" role="status">Researching the law</span><span id="analysis-count" class="muted"></span><progress id="analysis-meter" max="9" value="0" aria-label="Recorded courtroom turns"></progress></div>
+      <nav class="case-tabs" role="tablist" aria-label="Case views">
+        <button id="tab-intake" role="tab" aria-selected="true" aria-controls="view-intake" type="button"><i data-lucide="file-pen-line" aria-hidden="true"></i>Case details</button>
+        <button id="tab-brief" role="tab" aria-selected="false" aria-controls="view-brief" tabindex="-1" type="button"><i data-lucide="clipboard-check" aria-hidden="true"></i>Readiness brief</button>
+        <button id="tab-paths" role="tab" aria-selected="false" aria-controls="view-paths" tabindex="-1" type="button"><i data-lucide="git-branch" aria-hidden="true"></i>Argument paths</button>
+        <button id="tab-court" role="tab" aria-selected="false" aria-controls="view-court" tabindex="-1" type="button"><i data-lucide="landmark" aria-hidden="true"></i>Courtroom</button>
+        <button id="tab-research" role="tab" aria-selected="false" aria-controls="view-research" tabindex="-1" type="button"><i data-lucide="book-open" aria-hidden="true"></i>Research &amp; sources</button>
+      </nav>
+      <section id="view-intake" role="tabpanel" aria-labelledby="tab-intake">
+        <div class="intake-layout">
+          <form id="case-form">
+            <div class="section-heading"><h2>The dispute</h2><button id="load-sample" class="text-button" type="button"><i data-lucide="file-text" aria-hidden="true"></i>Load sample case</button></div>
+            <fieldset class="side-field"><legend>Your position</legend><div class="segmented"><label><input type="radio" name="side" value="complainant" checked><span>Cheque recipient</span></label><label><input type="radio" name="side" value="respondent"><span>Cheque issuer</span></label></div></fieldset>
+            <label for="case-scenario">Case facts</label><textarea id="case-scenario" name="scenario" minlength="25" maxlength="6000" rows="5" required placeholder="Describe the cheque, the payment obligation, why it was returned, and what each side disputes."></textarea>
+            <p class="field-note">Anonymised facts only. Unconfirmed dates should stay blank.</p>
+            <div class="section-heading section-break"><h2>Dates &amp; records</h2><span class="muted small">Optional, unless confirmed</span></div>
+            <div class="form-grid">
+              <div><label for="cheque-date">Cheque date</label><input id="cheque-date" name="cheque_date" type="date"></div>
+              <div><label for="presented-on">Presented to bank</label><input id="presented-on" name="presented_on" type="date"></div>
+              <div><label for="valid-until">Bank-confirmed validity end</label><input id="valid-until" name="valid_until" type="date"></div>
+              <div><label for="memo-received">Bank information received</label><input id="memo-received" name="memo_received_on" type="date"></div>
+              <div><label for="notice-sent">Demand notice given</label><input id="notice-sent" name="notice_sent_on" type="date"></div>
+              <div><label for="notice-received">Notice received by drawer</label><input id="notice-received" name="notice_received_on" type="date"></div>
+              <div><label for="complaint-filed">Complaint filed</label><input id="complaint-filed" name="complaint_filed_on" type="date"></div>
+              <div><label for="assessment-date">Assessment date</label><input id="assessment-date" name="as_of" type="date" required></div>
+              <div><label for="debt-evidence">Debt or liability records</label><select id="debt-evidence" name="debt_evidence"><option value="unknown">Not confirmed</option><option value="available">Records available</option><option value="disputed">Liability disputed</option></select></div>
+              <div><label for="payment-received">Payment after notice</label><select id="payment-received" name="payment_received"><option value="unknown">Not confirmed</option><option value="no">No payment reported</option><option value="yes">Payment reported</option></select></div>
+            </div>
+            <div class="section-heading section-break"><h2>Supporting notes</h2><label class="file-button" for="evidence-file"><i data-lucide="paperclip" aria-hidden="true"></i>Add text file<input id="evidence-file" class="visually-hidden" type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv"></label></div>
+            <textarea id="case-evidence" name="evidence" rows="3" maxlength="16000" aria-label="Supporting notes" placeholder="Relevant extracts from the return memo, notice, agreement, or ledger."></textarea><p id="file-status" class="field-note" role="status">Text extracts only. Original documents are not authenticated.</p>
+            <label class="case-consent"><input id="case-consent" type="checkbox" required><span>I agree to send these facts and notes to the configured AI provider and save this case locally.</span></label>
+            <div class="form-actions"><button id="analyse-case" class="primary" type="submit" disabled><i data-lucide="sparkles" aria-hidden="true"></i><span id="analyse-label">Analyse case</span></button><span class="small muted">One case analysis at a time</span></div>
+          </form>
+          <aside class="calendar-preview" aria-label="Calendar review"><div class="section-heading"><h2>Calendar review</h2><i data-lucide="calendar-days" aria-hidden="true"></i></div><p id="calendar-error" class="alert error" role="status" hidden></p><div id="calendar-preview"></div></aside>
+        </div>
+      </section>
+      <section id="view-brief" role="tabpanel" aria-labelledby="tab-brief" hidden><div id="brief-content" class="empty-state"><i data-lucide="clipboard-list" aria-hidden="true"></i><h2>No case brief yet</h2></div></section>
+      <section id="view-paths" role="tabpanel" aria-labelledby="tab-paths" hidden><div id="paths-content" class="empty-state"><h2>No argument paths yet</h2></div></section>
+      <section id="view-court" role="tabpanel" aria-labelledby="tab-court" hidden>
+        <div class="section-heading"><div><h2>Argument rehearsal</h2><p class="small muted">Simulated discussion, not a judicial ruling</p></div><select id="court-path" aria-label="Courtroom argument path"><option value="1">Path 1</option></select></div>
+        <div id="room-lanes" class="room-stage" aria-label="Simulated magistrate courtroom"><div id="room-labels"></div></div>
+        <div class="court-controls"><button id="court-play" class="icon-button" type="button" aria-label="Play rehearsal" title="Play rehearsal"><i data-lucide="play" aria-hidden="true"></i></button><button id="court-next" class="icon-button" type="button" aria-label="Next courtroom statement" title="Next courtroom statement"><i data-lucide="step-forward" aria-hidden="true"></i></button><label for="court-speed">Playback<select id="court-speed"><option value="1">1x</option><option value="2" selected>2x</option><option value="4">4x</option></select></label><span id="court-position" class="small muted" role="status">No statements recorded</span></div>
+        <div id="court-statement" class="court-statement"><p class="muted">No statements recorded.</p></div>
+      </section>
+      <section id="view-research" role="tabpanel" aria-labelledby="tab-research" hidden>
+        <div class="research-heading"><h2>Source evidence</h2><p id="quote-summary" class="small muted">No quotations recorded</p></div>
+        <div class="source-layout"><div><div class="source-filters"><input id="source-search" type="search" aria-label="Search retrieved sources" placeholder="Search sources"><select id="source-kind" aria-label="Source type"><option value="all">All sources</option><option value="statute">Statutes</option><option value="precedent">Precedents</option></select></div><div id="source-list" class="source-list"><p class="muted">No sources retrieved.</p></div></div><article id="source-detail" class="source-detail"><h3>No source selected</h3></article></div>
+        <div class="section-heading section-break"><h2>Agent activity</h2><span id="tool-count" class="small muted">0 tool results</span></div><ol id="agent-trace" class="agent-trace"></ol>
+      </section>
+      <footer class="case-footer"><span>Preparation support, not legal advice or an outcome prediction.</span><span>English corpus / SC, Delhi &amp; Bombay HC</span></footer>
+    </main>
+  </div>
+  <dialog id="delete-dialog"><form method="dialog"><h2>Delete this saved case?</h2><p>The local brief, facts, and research record will be removed. This does not erase data already sent to the model provider.</p><div class="dialog-actions"><button value="cancel">Keep case</button><button id="confirm-delete" class="danger" type="button">Delete case</button></div></form></dialog>
+</body>
+</html>

@@ -1,12 +1,30 @@
-# LegisiMate / Misofish — Indian Courtroom & Legal Decision-Tree Simulator
+# LegisiMate: Evidence-Backed Case Preparation
 
-An Indian-jurisdiction courtroom trial and multiverse decision-tree simulator built on top of a local evidence-graph and RAG engine:
+A local Section 138 cheque-dishonour workbench for individuals, small businesses and advocates, aligned with **Sustainability & Social Impact** through informed access to legal preparation. It combines deterministic calendar checks, a bounded tool-using research agent, local legal retrieval and independent adversarial argument rehearsals.
 
-**Case Scenario $\rightarrow$ Open India Law (`v2026.08.1`) Statutory & Precedent RAG $\rightarrow$ 2.5D Courtroom Trial Across $N$ Outcome Branches ("Futures") $\rightarrow$ Decision-Tree Strategy Playbook & Cited Bench Verdict.**
+## Current Workbench
+
+The home page at **http://127.0.0.1:8765/** now provides:
+
+- Confirmed-input date checks for notice, payment and complaint periods; missing dates remain unresolved. A calendar month is not treated as 30 days.
+- Consent-based model analysis of anonymised facts and optional text extracts. Text, Markdown and CSV notes are supported; PDF/image OCR is not implemented.
+- An inspectable research loop choosing statute searches, precedent searches, source reads and deadline checks, with a four-step research bound and a 36-call overall cap.
+- Three case-specific argument paths, each with fresh conversation state: opposing counsel, the selected side's counsel and a neutral Magistrate. There is no jury or preset winning branch in this workflow.
+- Source-bound passage IDs: the model selects a known source and passage; the server attaches its exact corpus text and checks the match. A matched quotation does not validate the legal interpretation or establish that a precedent is still good law.
+- A preparation brief with missing evidence, next steps, advocate questions and voluntary-resolution considerations. Unknown or review-needed inputs qualify supportive model assessments.
+- Saved local cases, cancellation, source inspection, Markdown export, local-record deletion and readable 2.5D courtroom replay. Changing saved inputs creates a new analysis; it does not overwrite the original.
+
+The server remains local-only and uses the configured OpenAI Responses-compatible provider. Gemini integration and Google Cloud deployment remain future submission requirements, not completed capabilities. No accuracy, judicial-outcome probability, automated filing or legal-clearance claim is made.
+
+Case facts, notes, results and research are plaintext in the local `casework` table in `data/runs.db`. Consent is required before model analysis. Deleting a case removes its database record, not copies already sent to the provider, downloaded exports or a secure erasure of storage pages. Use synthetic or properly anonymised cases for demonstrations.
+
+## Legacy Simulator
+
+The original Misofish simulation is preserved at **http://127.0.0.1:8765/legacy**, including existing saved experiments. The capabilities below describe that legacy workflow. Its model-generated win percentages are not calibrated predictions and are not used in the new readiness brief.
 
 ---
 
-## Key Capabilities
+### Legacy Capabilities
 
 1. **Multiverse Legal Decision Tree ("Doctor Strange" Outcome Branches):**
    - Each tick represents a distinct **Outcome Branch (`Future #1..#N`)** in a litigation decision tree rather than a generic chat round:
@@ -94,9 +112,12 @@ MISOFISH_MODEL_TIMEOUT="180"
 ```
 
 Open **http://127.0.0.1:8765** in your browser:
-1. Pick a domain under **Indian Legal Corpus (RAG)** (`Auto-detect`, `Cheque Bounce (Sec 138 NI Act + RBI)`, `Breach of Contract (Sec 73/74 + Specific Relief)`, or `Constitutional / Writ / Limitation`) and click **Retrieve Law & Cases**.
-2. Choose **Jury Members** (`1..12`, default `3`) and **Outcome Branches** (`1..10`, default `3`), keep **Simulation** on **Indian Courtroom Trial**, check the consent box, and click **Prepare Experiment**.
-3. Once status reaches `ready`, click **Start** to watch the courtroom trial across all outcome branches, compare win probabilities on the **Future Cards**, inspect the **Decision Tree & Graph** tab, and export the final synthesis report.
+1. Enter an anonymised cheque-dishonour case or use **Load sample case**. Select recipient or issuer, and confirm only dates supported by records.
+2. Review the calendar checks. Add optional text extracts, give consent, and select **Analyse case**.
+3. Inspect the readiness brief, argument paths, source quotations and agent activity. The courtroom replays the recorded statements; it is not a real judicial ruling.
+4. Download the brief or delete its local saved record when finished. **Legacy experiments** opens the previous simulator.
+
+Courtroom analysis does not require the optional OASIS worker. Only one analysis or legacy experiment runs at a time to keep model-call accounting isolated. Failed or cancelled analyses retain their completed checks and sources.
 
 ---
 
@@ -116,28 +137,36 @@ To re-run or expand the extraction from Vaquill AI's Open India Law (`v2026.08.1
 
 ## Running Tests & Verification
 
+The historical server tests additionally import `httpx` (test-only). Install it with the approved package registry if missing. The `test_engine` module requires the optional OASIS worker environment; it is not required by the current casework application.
+
 ```sh
 # Run the full Python test suite (courtroom, Open India Law RAG, graph, town, server, SDK):
 PYTHONPATH=tests .venv/bin/python -W default -m unittest discover -s tests -v
 
 # Run frontend JavaScript syntax and VM regressions:
 node --check web/app.js
+node --check web/cases.js
 node --check web/room.js
 node tests/check_room_speech.js
 node tests/check_social_graph.js
 ```
 
+Local verification on 2026-10-17: all 102 backend tests outside the optional 18-test OASIS module passed, as did the JavaScript regressions. The five workbench views were checked at 390, 768 and 1440 pixels, including consent, invalid dates, source inspection, export, actor selection and deletion. A live model workflow exposed free-form quotation failures; the corrected passage-ID contract was then checked with the provider and the revised workflow with deterministic tests. This is integration evidence, not a legal-accuracy or outcome-prediction evaluation.
+
 ---
 
 ## Repository Structure
 
+- [misofish/casework.py](misofish/casework.py) - date checks, consent/request schemas, bounded research tools, source-bound quotations, independent paths, local case storage and export.
+- [web/cases.html](web/cases.html), [web/cases.css](web/cases.css), [web/cases.js](web/cases.js) - the current brief-first workbench.
+- [tests/test_casework.py](tests/test_casework.py) - timeline boundaries, missing facts, source pairing, independent paths, failure preservation and cancellation regressions.
 - `misofish/court.py` — Indian Courtroom Trial & Multiverse Decision-Tree engine (`Future #1..#N`, `CourtUtterance`, fixed Court Officers + configurable Jury Panel).
 - `misofish/legal.py` — SQLite + FTS5 Indian Legal RAG retriever (`retrieve_legal_dossier`, `retrieve_turn_authorities`, `ensure_legal_db`).
 - `scripts/extract_open_india_law.py` — 2-Range coalesced Parquet extractor for Open India Law `v2026.08.1` + Constitution of India + Section 73 repair + citation graph extractor.
 - `misofish/graph.py` — Verbatim quote-validated evidence graph builder and SQLite FTS5 `GraphStore`.
 - `misofish/core.py` — Strict Pydantic schemas, persona preparation, and grounded report synthesis.
 - `misofish/town.py` — Seeded 3-stage randomized group conversations.
-- `misofish/server.py` — Loopback HTTP/SSE server (`/api/runs`, `/api/legal/retrieve`, `/api/config`).
+- `misofish/server.py` — Loopback HTTP server (`/api/cases`, `/api/cases/timeline`, `/api/authorities/{id}`, `/api/config`) and legacy run/SSE routes.
 - `web/room.js`, `web/app.js`, `web/index.html`, `web/room.css`, `web/style.css` — 2.5D Courtroom canvas, Future outcome cards, 4-box Strategy Playbook card, and Cytoscape Decision-Tree viewer.
 - `data/open_india_law/` — Extracted Indian legislation & court judgment Parquet slices and auto-materialized SQLite FTS5 RAG database.
 

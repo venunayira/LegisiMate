@@ -161,16 +161,18 @@ window.ConversationRoom = (() => {
       sign('Court Clerk',center.x+6.1,hall.y+1.35,Math.max(8,tile*.31),'#3b2312');
 
       // 2. Stepped 2-Column Jury Box along Left Wall (matching floorplan)
-      const juryRows=6,juryTop=hall.y+3.4,juryH=Math.min(rows-juryTop-4.6,juryRows*1.65+.8);
-      box3d(1.15,juryTop,4.1,juryH,.45,'#d4bc96','#87633f','#4a3119');
-      for(let r=0;r<juryRows;r++){
-        const cy=juryTop+.85+r*1.62;
-        if(cy+0.6<juryTop+juryH){
-          chair3d(2.35,cy,'right','#6b442a');
-          chair3d(4.0,cy,'right','#6b442a');
+      if([...cast.values()].some(item=>seatOf(item.actor.role,item.id)==='jury')){
+        const juryRows=6,juryTop=hall.y+3.4,juryH=Math.min(rows-juryTop-4.6,juryRows*1.65+.8);
+        box3d(1.15,juryTop,4.1,juryH,.45,'#d4bc96','#87633f','#4a3119');
+        for(let r=0;r<juryRows;r++){
+          const cy=juryTop+.85+r*1.62;
+          if(cy+0.6<juryTop+juryH){
+            chair3d(2.35,cy,'right','#6b442a');
+            chair3d(4.0,cy,'right','#6b442a');
+          }
         }
+        sign('JURY BOX',3.2,juryTop-.35,Math.max(8,tile*.34),'#3b2312');
       }
-      sign('JURY BOX',3.2,juryTop-.35,Math.max(8,tile*.34),'#3b2312');
 
       // 3. Well of the Court: Two Parallel Counsel Tables with 2 Chairs Each
       const tableY=center.y-1.65;
@@ -261,6 +263,7 @@ window.ConversationRoom = (() => {
   function destination(speech,actions){
     const speaker=cast.get(speech.agent_id),listener=listenerOf(speech,actions);
     if(!layout)return {listener};
+    if(courtMode)return {x:speaker.home.x,y:speaker.home.y,facing:speaker.face};
     const {tile,center,hall,board,width}=layout,slot=(speech.agent_id%7-3)*tile;
     if(speech.kind==='interview')return {x:speaker.home.x,y:speaker.home.y,facing:'down'};
     if(listener)return {x:Math.max(tile,Math.min(width-tile,listener.home.x+(speaker.home.x<listener.home.x?-1.3:1.3)*tile)),y:listener.home.y,listener};

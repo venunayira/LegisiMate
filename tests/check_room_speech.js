@@ -85,4 +85,20 @@ assert.equal(room.remaining(),1000,'A live tick waits for more lines');
 Object.assign(town,{round:1,status:'completed'});
 room.render(town,[],null,{paused:false,speed:1,tick:1});
 assert.equal(room.remaining(),0,'A finished tick lets playback move to the next tick');
+const drawnLabels=[];
+canvas2d.fillText=text=>drawnLabels.push(text);
+const courtSpeech={id:1,agent_id:3,platform:'court',kind:'say',round:1,text:'The notice date needs documentary confirmation.',data:{stage:'Notice and service'}};
+const court={id:'casework-court',config:{platform_mode:'court'},agents:[
+  {id:1,name:'Magistrate',role:'Presiding Magistrate'},
+  {id:2,name:'Complainant counsel',role:'Complainant Counsel'},
+  {id:3,name:'Defence counsel',role:'Respondent Defense Counsel'}],actions:[courtSpeech]};
+room.render(court,[],courtSpeech,{paused:false,speed:1});
+room.wake();advance(16);
+assert.equal(talking().length,1,'Court speakers begin at their fixed seats without a stalled walking phase');
+assert.ok(find(talking()[0],'room-bubble-text').textContent.length>0);
+assert.ok(!drawnLabels.includes('JURY BOX'),'The magistrate workflow does not display a jury box');
+drawnLabels.length=0;
+room.render({...court,id:'legacy-jury',agents:[...court.agents,{id:4,name:'Assessor',role:'Jury Member'}]},[],null);
+room.wake();
+assert.ok(drawnLabels.includes('JURY BOX'),'Saved legacy casts retain their jury layout');
 console.log('Town speech: walk-to-listener, gradual reveal, pause/resume, speed, replay, final interview, reduced motion and parallel groups pass');
