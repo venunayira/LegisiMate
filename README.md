@@ -13,6 +13,7 @@ LegisiMate is an evidence-backed legal preparation workbench for individuals, sm
 | **Submission Guide & 3-Min Video Script** | [SUBMISSION.md](SUBMISSION.md) (Full rubric alignment, Cloud Run deploy commands, and 3-minute video script) |
 | **Google Cloud AI & Cloud Run / Firebase** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [legisimate/core.py](legisimate/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) |
 | **Live Cloud Run App** | [legisimate-587527883402.europe-west1.run.app](https://legisimate-587527883402.europe-west1.run.app/) |
+| **Demo Video** | [YouTube](https://youtu.be/-pd5MmUemtE) (also in the repo as [LegisiMate.mp4](LegisiMate.mp4)) |
 | **Pre-Seeded Showcase Case** | [data/showcase_cases.json](data/showcase_cases.json) (`/?case=c810d87708f94f318b01a2d80dc570e9` — 27/27 verified quotes across 9 turns & 3 paths) |
 
 ## Current Workbench

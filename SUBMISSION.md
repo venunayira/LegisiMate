@@ -13,7 +13,7 @@ All submission materials, code, documentation, and presentation artifacts are in
 | **Functional Prototype (Google Cloud AI & Cloud Run / Firebase)** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [legisimate/core.py](legisimate/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) + pre-seeded verified showcase case ([data/showcase_cases.json](data/showcase_cases.json)) | Ready |
 | **Live Cloud Run App** | [https://legisimate-587527883402.europe-west1.run.app/](https://legisimate-587527883402.europe-west1.run.app/) | Live |
 | **Public GitHub Repository** | `https://github.com/venunayira/LegisiMate` | Live |
-| **3-Minute Demo Video Link (YouTube / Vimeo / Google Drive)** | Follow the exact 3-minute recording script in Section 4 below | Script Ready |
+| **3-Minute Demo Video Link (YouTube / Vimeo / Google Drive)** | [https://youtu.be/-pd5MmUemtE](https://youtu.be/-pd5MmUemtE) (also in the repo as [LegisiMate.mp4](LegisiMate.mp4)) | Live |
 
 ---
 
@@ -133,9 +133,11 @@ The submitted public deployment is [https://legisimate-587527883402.europe-west1
 
 ## 4. 3-Minute Demo Video (YouTube / Vimeo / Google Drive)
 
+**Watch:** [https://youtu.be/-pd5MmUemtE](https://youtu.be/-pd5MmUemtE)
+
 The demo is a 2:49 motion-graphics explainer generated from real captures of the running workbench and the proposal deck. It is narrated by the macOS "Aman" voice (Indian English), with captions burned in, a separate SRT file, and a music bed generated locally. All case data shown is fictional: the packaged showcase case `c810d877…` (recorded with Gemini 2.5 Flash) supplies the brief, research trace and 27/27 quotation result; the fictional verification case `de055d87…` supplies the full-hearing decision tree and courtroom footage.
 
-Rendered files (not committed): `video/build/LegisiMate-explainer-1080p.mp4` and `video/build/LegisiMate-explainer.srt`. To regenerate them with the workbench running on port 8765:
+A 720p copy is committed as [LegisiMate.mp4](LegisiMate.mp4). Rendered build outputs (not committed): `video/build/LegisiMate-explainer-1080p.mp4` and `video/build/LegisiMate-explainer.srt`. To regenerate them with the workbench running on port 8765:
 
 ```sh
 .venv/bin/python video/build_audio.py                                     # narration, timeline, captions, SRT
