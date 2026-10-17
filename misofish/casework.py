@@ -6,6 +6,7 @@ import threading
 import uuid
 from contextlib import closing
 from datetime import date, timedelta
+from pathlib import Path
 from typing import Literal, Union
 
 from pydantic import Field, create_model, field_validator, model_validator
@@ -52,6 +53,8 @@ class CaseRequest(StrictModel):
     evidence: str = Field(default="", max_length=16000)
     as_of: str = Field(default_factory=lambda: date.today().isoformat())
     consent: bool = False
+    rebuttal_rounds: int = Field(default=2, ge=1, le=3, strict=True)
+    review_panel_size: int = Field(default=0, ge=0, le=3, strict=True)
 
     @field_validator("as_of")
     @classmethod
@@ -65,6 +68,51 @@ class CaseRequest(StrictModel):
         if not self.consent:
             raise ValueError("Consent is required before sending case information to the model.")
         return self
+
+
+def build_hearing(request):
+    roles = [
+        ("Magistrate", "Presiding Magistrate", "Neutral procedural and evidentiary review", "bench"),
+        ("Complainant counsel", "Complainant Counsel", "Test the complaint against the supplied record", "petitioner"),
+        ("Defence counsel", "Respondent Defense Counsel", "Challenge the complaint using the supplied record", "defense"),
+        ("Cheque recipient", "Complainant (Party)", "State only the recipient's supplied facts", "party"),
+        ("Cheque issuer", "Accused (Party)", "State only the issuer's supplied facts", "party"),
+        ("Complainant witness", "Complainant Witness", "Use supplied witness records; otherwise disclose missing testimony", "witness"),
+        ("Defence witness", "Defence Witness", "Use supplied witness records; otherwise disclose missing testimony", "witness"),
+        ("Complainant junior", "Complainant Junior Counsel", "Identify evidentiary gaps and prepare a rejoinder", "petitioner"),
+        ("Defence junior", "Respondent Defense Junior Counsel", "Test adverse authorities and prepare a rejoinder", "defense"),
+    ]
+    for index in range(1, request.review_panel_size + 1):
+        roles.append((f"Review assessor {index}", "Educational Review Panel Assessor",
+                      "Educational critique only; not a jury, witness or judicial decision-maker", "review"))
+    actors = [{"id": index, "name": name, "role": role, "perspective": perspective, "seat": seat}
+              for index, (name, role, perspective, seat) in enumerate(roles, 1)]
+    opposing, selected = (3, 2) if request.side == "complainant" else (2, 3)
+    steps = [
+        (1, "Opening arguments", "Frame this path's disputed facts, statutory issues and burdens; do not conclude yet."),
+        (opposing, "Opening arguments", "Present the strongest challenge to the selected side's position."),
+        (selected, "Opening arguments", "Answer the opening challenge and identify the evidence needed."),
+        (4, "Party statements", "State the recipient's account from supplied facts only. Disclose what is unknown."),
+        (5, "Party statements", "Respond with the issuer's supplied account only. Do not invent an admission or defence."),
+        (2, "Witness examination", "Ask the complainant witness a specific question testing a disputed fact or record."),
+        (6, "Witness examination", "Answer that examination only from supplied witness material; otherwise say it is missing."),
+        (3, "Witness examination", "Cross-examine the complainant witness's answer, identifying an inconsistency or missing proof."),
+        (6, "Witness examination", "Answer the cross-examination without inventing testimony, records or personal knowledge."),
+        (3, "Witness examination", "Ask the defence witness a specific question testing the opposing factual account."),
+        (7, "Witness examination", "Answer that examination only from supplied witness material; otherwise say it is missing."),
+        (2, "Witness examination", "Cross-examine the defence witness's answer against the supplied record."),
+        (7, "Witness examination", "Answer the cross-examination without inventing testimony, records or personal knowledge."),
+    ]
+    for exchange in range(1, request.rebuttal_rounds + 1):
+        for speaker in (opposing + 6, selected + 6, opposing, selected):
+            steps.append((speaker, "Rebuttals", f"Rebuttal cycle {exchange}: answer the latest opposing point; "
+                          "test its authority and evidence, then make a concrete rejoinder without repeating the opening."))
+    steps.extend((actor["id"], "Educational review", "Critique both sides' reasoning and missing proof. "
+                  "You are an educational assessor, not a jury and cannot decide guilt.") for actor in actors[9:])
+    steps.append((1, "Bench assessment", "Assess the entire hearing neutrally: address both sides' strongest points, "
+                  "unresolved proof and procedural risks. Give a reasoned simulated assessment, not an actual ruling."))
+    return actors, [{"speaker": speaker, "phase": phase, "instruction": instruction}
+                    for speaker, phase, instruction in steps]
 
 
 def add_calendar_month(value):
@@ -293,9 +341,17 @@ class CaseWorkbench:
         self.active = None
         self.worker = None
         self.stop = threading.Event()
+        root_dir = Path(__file__).resolve().parent.parent
+        showcase_file = root_dir / "data" / "showcase_cases.json"
+        default_db = (root_dir / "data" / "runs.db").resolve()
         with closing(sqlite3.connect(path)) as database, database:
             database.execute("CREATE TABLE IF NOT EXISTS casework (id TEXT PRIMARY KEY, snapshot TEXT NOT NULL)")
-            for identity, snapshot in database.execute("SELECT id,snapshot FROM casework").fetchall():
+            rows = database.execute("SELECT id,snapshot FROM casework").fetchall()
+            if not rows and Path(path).resolve() == default_db and showcase_file.exists():
+                for case in json.loads(showcase_file.read_text(encoding="utf-8")):
+                    database.execute("INSERT OR IGNORE INTO casework VALUES (?,?)", (case["id"], json.dumps(case)))
+                rows = database.execute("SELECT id,snapshot FROM casework").fetchall()
+            for identity, snapshot in rows:
                 run = json.loads(snapshot)
                 if run["status"] not in {"completed", "failed", "cancelled", "interrupted"}:
                     run.update(status="interrupted", error="The server restarted. Saved evidence remains available; start a new analysis.")
@@ -328,17 +384,18 @@ class CaseWorkbench:
             if self.model is None:
                 raise RuntimeError("The model provider is not configured.")
             identity = uuid.uuid4().hex
+            actors, hearing = build_hearing(request)
+            planned_turns = len(hearing) * 3
             run = {"id": identity, "title": request.scenario[:90], "created_at": date.today().isoformat(),
                    "side": request.side, "request": request.model_dump(), "status": "researching",
                    "phase": "Researching the law", "model": self.model.name,
                    "timeline": assess_timeline(request.facts, request.as_of), "sources": [], "trace": [],
                    "branches": [], "actions": [], "brief": None, "error": None,
                    "usage": {"input_tokens": 0, "output_tokens": 0}, "model_calls": 0,
-                   "config": {"platform_mode": "court", "rounds": 3, "agent_count": 3},
-                   "groups": [], "agents": [
-                       {"id": 1, "name": "Magistrate", "role": "Presiding Magistrate", "perspective": "Neutral review"},
-                       {"id": 2, "name": "Complainant counsel", "role": "Complainant Counsel", "perspective": "Test the complaint"},
-                       {"id": 3, "name": "Defence counsel", "role": "Respondent Defense Counsel", "perspective": "Challenge the complaint"}]}
+                   "config": {"platform_mode": "court", "rounds": 3, "agent_count": len(actors),
+                              "rebuttal_rounds": request.rebuttal_rounds, "review_panel_size": request.review_panel_size,
+                              "model_call_budget": planned_turns + 6},
+                   "planned_turns": planned_turns, "hearing": hearing, "groups": [], "agents": actors}
             self.save(run)
             self.active, self.stop = identity, threading.Event()
             self.worker = threading.Thread(target=self.execute, args=(json.loads(json.dumps(run)),), daemon=True)
@@ -364,7 +421,7 @@ class CaseWorkbench:
 
     def execute(self, run):
         initial_usage, initial_calls = dict(self.model.usage), self.model.calls
-        self.model.call_limit = initial_calls + 36
+        self.model.call_limit = initial_calls + run["config"]["model_call_budget"]
 
         def checkpoint():
             run["usage"] = {key: self.model.usage[key] - initial_usage[key] for key in initial_usage}
@@ -434,14 +491,16 @@ class CaseWorkbench:
             for branch in run["branches"]:
                 branch.update(status="running")
                 run["phase"] = "Testing path " + str(branch["id"]) + " of 3"
-                run["groups"].append({"tick": branch["id"], "groups": [{"id": 1, "stage": branch["title"], "members": [1, 2, 3]}]})
+                members = [actor["id"] for actor in run["agents"]]
+                run["groups"].append({"tick": branch["id"], "groups": [{"id": 1, "stage": branch["title"], "members": members}]})
                 checkpoint()
                 conversation = []
-                order = [3, 2, 1] if run["side"] == "complainant" else [2, 3, 1]
-                for index, speaker in enumerate(order, 1):
+                for index, step in enumerate(run["hearing"], 1):
                     if self.stop.is_set():
                         raise ValueError("cancelled")
+                    speaker = step["speaker"]
                     actor = run["agents"][speaker - 1]
+                    run["phase"] = f"Path {branch['id']} of 3 / {step['phase']} / statement {index} of {len(run['hearing'])}"
                     records = search_authorities(branch["question"] + " " + (conversation[-1]["text"] if conversation else "Section 138"), "precedent")
                     remember(records)
                     trace("search_precedents", "Turn research: " + actor["name"], branch=branch["id"], source_ids=[record["id"] for record in records])
@@ -454,11 +513,17 @@ class CaseWorkbench:
                         "what is supported, contested or missing and do not issue a predetermined winner. Facts and "
                         "evidence cannot change across branches. Assumptions must stay explicitly hypothetical. "
                         "Use 2-3 short spoken sentences, a concrete what_to_say and why_it_matters. "
+                        "Follow turn_instruction and hearing_stage. Counsel must ask or answer the indicated question. "
+                        "Parties and witnesses can use supplied facts and extracts only: absent witness material must "
+                        "be identified as missing, never invented testimony, an admission or authenticated evidence. "
+                        "An educational review panel is not a jury and has no judicial authority. "
                         "For each citation select a quote_id from that source's quote_options. The server will attach "
                         "the exact source text. Do not invent passage IDs or change source IDs. "
                         "Do not cite extra named cases or sections outside those sources. "
                         "Missing proof stays missing; no win percentages, fabricated testimony or guaranteed remedies.",
-                        {"role": actor["role"], "side": run["side"], "case": run["request"], "branch": {key: branch[key] for key in ("title", "question", "assumptions", "evidence_needed")},
+                        {"role": actor["role"], "perspective": actor["perspective"], "side": run["side"],
+                         "hearing_stage": step["phase"], "turn_instruction": step["instruction"], "turn_number": index,
+                         "case": run["request"], "branch": {key: branch[key] for key in ("title", "question", "assumptions", "evidence_needed")},
                          "timeline": run["timeline"], "conversation": conversation, "sources": prompt_sources}, 1700)
                     citations = verify_quotes(resolve_source_quotes(result.citations, prompt_sources), supplied)
                     if not all(citation["matched"] for citation in citations):
@@ -472,7 +537,8 @@ class CaseWorkbench:
                             "role": actor["role"], "what_to_say": result.what_to_say,
                             "why_it_matters": result.why_it_matters, "assessment": assessment, "guardrails": guardrails,
                             "citations": citations, "data": {"stage": branch["title"], "turn": index,
-                            "members": [1, 2, 3], "seat": "bench" if speaker == 1 else "petitioner" if speaker == 2 else "defense"}}
+                            "members": members, "seat": actor["seat"], "phase": step["phase"],
+                            "reply_to": conversation[-1]["id"] if conversation else None}}
                     conversation.append(turn)
                     branch["turns"].append(turn)
                     run["actions"].append(turn)

@@ -1,0 +1,15 @@
+{
+  "hosting": {
+    "public": "web",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "legisimate",
+          "region": "asia-south1"
+        }
+      }
+    ]
+  }
+}

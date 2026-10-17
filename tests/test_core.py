@@ -3,7 +3,7 @@ import json
 import threading
 import unittest
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 from pydantic import ValidationError
 from misofish.core import (Action, Agent, Config, Model, Personas, Report,
@@ -392,6 +392,38 @@ class CoreTests(unittest.TestCase):
         Model(client,'gpt-5.4-mini').generate(Personas,'Test',{},3000)
         self.assertEqual(client.responses.parse.call_args.kwargs['reasoning'],{'effort':'none'})
 
+    def test_gemini_client_supports_ai_studio_and_vertex_structured_generation(self):
+        from misofish.core import GeminiClient
+        calls = []
+        def fake_transport(req, timeout=None):
+            calls.append(req)
+            if "metadata.google.internal" in req.full_url:
+                payload = {"access_token": "vertex-token-123"}
+            else:
+                payload = {
+                    "candidates": [{"content": {"parts": [{"text": Personas(agents=roster()).model_dump_json()}]}}],
+                    "usageMetadata": {"promptTokenCount": 44, "candidatesTokenCount": 21},
+                }
+            resp = MagicMock()
+            resp.__enter__.return_value = resp
+            resp.read.return_value = json.dumps(payload).encode("utf-8")
+            return resp
+        gemini = GeminiClient(api_key="AIzaTestKey", transport=fake_transport)
+        model = Model(gemini, "gemini-2.5-flash")
+        out = model.generate(Personas, "Create personas", {"scenario": "Test"}, 400)
+        self.assertEqual(len(out.agents), 2)
+        self.assertEqual(model.usage, {"input_tokens": 44, "output_tokens": 21})
+        self.assertIn("generativelanguage.googleapis.com", calls[0].full_url)
+        self.assertEqual(calls[0].headers.get("X-goog-api-key"), "AIzaTestKey")
+
+        calls.clear()
+        vertex = GeminiClient(project="legisimate-gcp", location="asia-south1", transport=fake_transport)
+        v_model = Model(vertex, "gemini-2.5-flash")
+        v_out = v_model.generate(Personas, "Create personas", {"scenario": "Test"}, 400)
+        self.assertEqual(len(v_out.agents), 2)
+        self.assertEqual(len(calls), 2)
+        self.assertIn("asia-south1-aiplatform.googleapis.com", calls[1].full_url)
+        self.assertEqual(calls[1].headers.get("Authorization"), "Bearer vertex-token-123")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,34 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/legisimate:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/legisimate:latest'
+      - '.'
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/legisimate:latest'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'legisimate'
+      - '--image=gcr.io/$PROJECT_ID/legisimate:latest'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=2Gi'
+      - '--cpu=2'
+      - '--timeout=3600'
+      - '--max-instances=1'
+      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID,VERTEX_LOCATION=${_VERTEX_LOCATION},GEMINI_MODEL=${_GEMINI_MODEL}'
+substitutions:
+  _REGION: asia-south1
+  _VERTEX_LOCATION: us-central1
+  _GEMINI_MODEL: gemini-2.5-flash
+images:
+  - 'gcr.io/$PROJECT_ID/legisimate:latest'

@@ -10,6 +10,7 @@ __pycache__/
 docs/chat-export-vscode.json
 docs/CHAT-TRANSCRIPT.md
 data/*
+!data/showcase_cases.json
 !data/open_india_law/
 data/open_india_law/*
 !data/open_india_law/target_legislation.parquet

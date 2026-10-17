@@ -1,9 +1,9 @@
 'use strict';
 const byId = identity => document.getElementById(identity);
-const tabs = ['intake', 'brief', 'paths', 'court', 'research'];
+const tabs = ['intake', 'brief', 'paths', 'tree', 'court', 'research'];
 const terminalStates = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
 const dateFields = ['cheque_date', 'presented_on', 'valid_until', 'memo_received_on', 'notice_sent_on', 'notice_received_on', 'complaint_filed_on'];
-const state = {config: null, current: null, history: [], activeId: null, tab: 'intake', busy: false, poll: null, preview: null, previewVersion: 0, selectionVersion: 0, selectedSource: null, sources: new Map(), playback: null, playing: false, turnIndex: 0, courtPath: 1};
+const state = {config: null, current: null, history: [], activeId: null, tab: 'intake', busy: false, poll: null, preview: null, previewVersion: 0, selectionVersion: 0, selectedSource: null, sources: new Map(), playback: null, playing: false, turnIndex: 0, courtPath: 1, tree: null, treeSignature: '', treeSelection: 'case-root'};
 const node = (tag, text, className) => { const element = document.createElement(tag); if (text !== undefined) element.textContent = text; if (className) element.className = className; return element; };
 const icon = name => { const element = node('i'); element.dataset.lucide = name; element.setAttribute('aria-hidden', 'true'); return element; };
 const icons = () => MisofishAssets.createIcons({icons: MisofishAssets.icons});
@@ -21,6 +21,12 @@ async function api(path, body) {
 function facts() {
   const form = byId('case-form');
   return Object.fromEntries([...dateFields, 'debt_evidence', 'payment_received'].map(name => [name, form.elements.namedItem(name).value]));
+}
+function estimateHearing() {
+  const rebuttals = Number(byId('rebuttal-rounds').value), panel = Number(byId('review-panel-size').value);
+  if (!byId('rebuttal-rounds').validity.valid || !byId('review-panel-size').validity.valid) { byId('hearing-estimate').textContent = ''; return; }
+  const turns = 14 + rebuttals * 4 + panel;
+  byId('hearing-estimate').textContent = `${9 + panel} participants / 3 independent paths / ${turns} statements per path / up to ${turns * 3 + 6} model calls`;
 }
 function controls() {
   const run = state.current, active = Boolean(state.activeId), selectedActive = run?.id === state.activeId;
@@ -41,8 +47,9 @@ function showTab(name, focus = false) {
     byId('tab-' + tab).setAttribute('aria-selected', String(tab === name));
     byId('tab-' + tab).tabIndex = tab === name ? 0 : -1;
   }
-  byId('page-title').textContent = {intake: 'Case details', brief: 'Case-readiness brief', paths: 'Argument paths', court: 'Courtroom rehearsal', research: 'Research & sources'}[name];
+  byId('page-title').textContent = {intake: 'Case details', brief: 'Case-readiness brief', paths: 'Argument paths', tree: 'Decision tree', court: 'Courtroom rehearsal', research: 'Research & sources'}[name];
   if (focus) byId('tab-' + name).focus();
+  if (name === 'tree') renderDecisionTree();
   if (name === 'court') { renderCourt(); ConversationRoom.wake(); }
 }
 function sourceButton(identity, label) {
@@ -106,6 +113,7 @@ function fillForm(request) {
     for (const [key, value] of Object.entries(request.facts)) form.elements.namedItem(key).value = value;
   }
   byId('case-consent').checked = false; byId('file-status').textContent = 'Text extracts only. Original documents are not authenticated.';
+  byId('rebuttal-rounds').value = request?.rebuttal_rounds ?? 2; byId('review-panel-size').value = request?.review_panel_size ?? 0; estimateHearing();
   previewCalendar();
 }
 function listSection(title, values) {
@@ -158,6 +166,71 @@ function renderPaths() {
     const play = node('button', undefined, 'text-button'); play.type = 'button'; play.disabled = !branch.turns.length; play.append(icon('play'), node('span', 'Open courtroom rehearsal')); play.addEventListener('click', () => { state.courtPath = branch.id; state.turnIndex = 0; state.playing = false; ConversationRoom.restartSpeech(); showTab('court'); }); article.append(play); host.append(article);
   }
 }
+function decisionTreeElements(run) {
+  if (!run) return [];
+  const elements = [{data: {id: 'case-root', label: 'Case facts\nIndependent hearings', color: '#245e97', actionIds: []}}];
+  const colors = {supported: '#12604b', contested: '#a4313f', needs_evidence: '#87500b'};
+  for (const branch of run.branches || []) {
+    const identity = `branch-${branch.id}`, color = colors[branch.assessment] || '#526765';
+    elements.push({data: {id: identity, label: `Path ${branch.id}\n${branch.title}`, color, branchId: branch.id, actionIds: []}},
+      {data: {id: `edge-${identity}`, source: 'case-root', target: identity}});
+    let previous = identity;
+    const stages = new Map();
+    for (const turn of branch.turns) {
+      const phase = turn.data?.phase || (/magistrate/i.test(turn.role) ? 'Bench assessment' : 'Opening arguments');
+      if (!stages.has(phase)) stages.set(phase, []);
+      stages.get(phase).push(turn.id);
+    }
+    for (const [index, [phase, actionIds]] of [...stages].entries()) {
+      const stageId = `${identity}-stage-${index}`;
+      elements.push({data: {id: stageId, label: `${phase}\n${actionIds.length} statement${actionIds.length === 1 ? '' : 's'}`,
+        color: phase === 'Bench assessment' ? color : '#526765', branchId: branch.id, phase, actionIds}},
+      {data: {id: `edge-${stageId}`, source: previous, target: stageId}});
+      previous = stageId;
+    }
+  }
+  return elements;
+}
+function renderTreeDetail(data) {
+  const host = byId('tree-detail'), run = state.current;
+  host.replaceChildren();
+  const branch = run?.branches.find(item => item.id === data?.branchId);
+  if (!branch) { host.append(node('h3', 'Case facts'), node('p', run?.request.scenario || 'No case selected.', 'small')); return; }
+  host.append(node('p', `Path ${branch.id}`, 'eyebrow'), node('h3', data.phase || branch.title), node('p', branch.question, 'small'));
+  const turns = branch.turns.filter(turn => data.actionIds.includes(turn.id));
+  if (!turns.length) { host.append(node('p', assessmentLabel(branch.assessment || branch.status), 'muted')); return; }
+  const label = node('label', 'Recorded statement'), select = node('select'), content = node('div');
+  label.htmlFor = select.id = 'tree-statement';
+  for (const turn of turns) select.append(new Option(`${turn.data?.turn || branch.turns.indexOf(turn) + 1}. ${turn.role}`, String(turn.id)));
+  const replay = node('button', undefined, 'text-button'); replay.type = 'button'; replay.append(icon('play'), node('span', 'Open courtroom'));
+  const show = () => { const turn = turns.find(item => item.id === Number(select.value)); content.replaceChildren(statement(turn)); icons(); };
+  select.addEventListener('change', show);
+  replay.addEventListener('click', () => { state.courtPath = branch.id; state.turnIndex = branch.turns.findIndex(item => item.id === Number(select.value)); state.playing = false; ConversationRoom.restartSpeech(); showTab('court'); });
+  host.append(label, select, replay, content); show();
+}
+function selectTreeNode(identity) {
+  const selected = state.tree?.getElementById(identity);
+  if (!selected?.length) return;
+  state.treeSelection = identity; byId('tree-stage').value = identity;
+  state.tree.nodes().unselect(); selected.select(); renderTreeDetail(selected.data());
+}
+function renderDecisionTree() {
+  const run = state.current, host = byId('decision-tree'), select = byId('tree-stage');
+  if (!run) { state.tree?.destroy(); state.tree = null; state.treeSignature = ''; host.replaceChildren(); select.replaceChildren(new Option('No paths recorded', 'case-root')); byId('tree-detail').replaceChildren(node('h3', 'No hearing recorded')); return; }
+  const signature = run.id + JSON.stringify(run.branches.map(branch => [branch.id, branch.status, branch.assessment, branch.turns.length]));
+  if (signature === state.treeSignature) { state.tree.resize(); state.tree.fit(undefined, 24); return; }
+  const elements = decisionTreeElements(run); select.replaceChildren();
+  for (const item of elements.filter(item => !item.data.source)) select.append(new Option(`${item.data.branchId ? `Path ${item.data.branchId} / ` : ''}${item.data.phase || item.data.label.replace(/\n/g, ' / ')}`, item.data.id));
+  state.tree?.destroy();
+  state.tree = MisofishAssets.cytoscape({container: host, elements,
+    style: [{selector: 'node', style: {'shape': 'round-rectangle', 'background-color': 'data(color)', 'label': 'data(label)', 'color': '#fff', 'font-family': 'IBM Plex Sans', 'font-size': 12, 'text-wrap': 'wrap', 'text-max-width': 140, 'text-valign': 'center', 'text-halign': 'center', 'width': 160, 'height': 72}},
+      {selector: 'edge', style: {'width': 2, 'line-color': '#99ada1', 'target-arrow-color': '#99ada1', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier'}},
+      {selector: 'node:selected', style: {'border-width': 3, 'border-color': '#245e97'}}],
+    layout: {name: 'breadthfirst', directed: true, roots: '#case-root', spacingFactor: 1.15, padding: 24, animate: false}, minZoom: .25, maxZoom: 2});
+  state.treeSignature = signature;
+  state.tree.on('tap', 'node', event => selectTreeNode(event.target.id()));
+  selectTreeNode(state.tree.getElementById(state.treeSelection).length ? state.treeSelection : 'case-root');
+}
 function renderSourceList() {
   const host = byId('source-list'), query = byId('source-search').value.toLowerCase(), kind = byId('source-kind').value; host.replaceChildren();
   const sources = [...state.sources.values()].filter(source => (kind === 'all' || source.kind === kind) && [source.title, source.court, source.id, source.citation].join(' ').toLowerCase().includes(query));
@@ -196,11 +269,16 @@ function renderCourt() {
   if (!select.options.length) select.append(new Option('No paths recorded', '1'));
   select.value = String(state.courtPath); const turns = courtTurns(); state.turnIndex = Math.min(state.turnIndex, Math.max(0, turns.length - 1));
   const turn = turns[state.turnIndex];
+  const statementSelect = byId('court-turn'); statementSelect.replaceChildren();
+  for (const [index, item] of turns.entries()) statementSelect.append(new Option(`${index + 1}. ${item.data?.phase || 'Hearing'} / ${item.role}`, String(index)));
+  if (!turns.length) statementSelect.append(new Option('No statements recorded', '0'));
+  statementSelect.value = String(state.turnIndex); statementSelect.disabled = !turns.length;
   if (run) ConversationRoom.render(run, [], turn || null, {paused: !state.playing, speed: Number(byId('court-speed').value)});
   byId('court-statement').replaceChildren(turn ? statement(turn) : node('p', 'No statements recorded.', 'muted'));
   byId('court-position').textContent = turn ? `${state.turnIndex + 1} / ${turns.length} · ${turn.role}` : 'No statements recorded';
   byId('court-play').replaceChildren(icon(state.playing ? 'pause' : 'play')); byId('court-play').setAttribute('aria-label', state.playing ? 'Pause rehearsal' : 'Play rehearsal'); byId('court-play').title = state.playing ? 'Pause rehearsal' : 'Play rehearsal'; byId('court-play').disabled = !turn;
   byId('court-next').disabled = !turn || state.turnIndex >= turns.length - 1; icons();
+  byId('court-prev').disabled = !turn || state.turnIndex === 0;
   if (state.playing && turn) state.playback = setTimeout(advanceCourt, Math.max(100, ConversationRoom.remaining()));
 }
 function advanceCourt() {
@@ -212,8 +290,8 @@ function renderRun() {
   const run = state.current; byId('case-status').textContent = statusLabel(run?.status);
   byId('case-subtitle').textContent = run ? `${run.side === 'complainant' ? 'Cheque recipient' : 'Cheque issuer'} · Assessed ${formatDate(run.request.as_of)}` : 'Cheque dishonour';
   byId('analysis-progress').hidden = !run || terminalStates.has(run.status);
-  if (run) { byId('analysis-phase').textContent = run.phase; byId('analysis-count').textContent = `${run.actions.length}/9 turns · ${run.model_calls} model calls`; byId('analysis-meter').value = run.actions.length; for (const source of run.sources) state.sources.set(source.id, source); }
-  renderBrief(); renderPaths(); renderResearch(); if (state.tab === 'court') renderCourt(); controls(); icons();
+  if (run) { const total = run.planned_turns || Math.max(9, run.actions.length); byId('analysis-phase').textContent = run.phase; byId('analysis-count').textContent = `${run.actions.length}/${total} turns · ${run.model_calls} model calls`; byId('analysis-meter').max = total; byId('analysis-meter').value = run.actions.length; for (const source of run.sources) state.sources.set(source.id, source); }
+  renderBrief(); renderPaths(); renderResearch(); if (state.tab === 'tree') renderDecisionTree(); if (state.tab === 'court') renderCourt(); controls(); icons();
 }
 async function pollActive() {
   clearTimeout(state.poll); const identity = state.activeId; if (!identity) return;
@@ -242,6 +320,7 @@ function newCase() {
 }
 for (const tab of tabs) byId('tab-' + tab).addEventListener('click', () => { if (tab !== 'court') { state.playing = false; clearTimeout(state.playback); } showTab(tab); });
 byId('case-form').addEventListener('change', () => { clearTimeout(state.preview); state.preview = setTimeout(previewCalendar, 100); });
+byId('rebuttal-rounds').addEventListener('input', estimateHearing); byId('review-panel-size').addEventListener('input', estimateHearing);
 document.querySelector('.case-tabs').addEventListener('keydown', event => {
   if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault(); const current = tabs.indexOf(state.tab); const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length; showTab(tabs[next], true);
@@ -261,7 +340,7 @@ byId('case-form').addEventListener('submit', async event => {
   event.preventDefault(); if (!event.target.reportValidity() || state.busy || state.activeId) return;
   state.busy = true; error(''); controls();
   try {
-    const body = {scenario: byId('case-scenario').value, side: event.target.elements.namedItem('side').value, facts: facts(), as_of: byId('assessment-date').value, evidence: byId('case-evidence').value, consent: byId('case-consent').checked};
+    const body = {scenario: byId('case-scenario').value, side: event.target.elements.namedItem('side').value, facts: facts(), as_of: byId('assessment-date').value, evidence: byId('case-evidence').value, consent: byId('case-consent').checked, rebuttal_rounds: Number(byId('rebuttal-rounds').value), review_panel_size: Number(byId('review-panel-size').value)};
     const run = await api('/api/cases', body); state.current = run; state.activeId = run.id; state.sources.clear(); state.selectedSource = null; state.courtPath = 1; state.turnIndex = 0; state.playing = false; ConversationRoom.reset(); renderRun(); showTab('brief'); history.replaceState(null, '', '?case=' + run.id); await refreshHistory(); pollActive();
   } catch (exception) { error(exception.message); }
   finally { state.busy = false; controls(); }
@@ -277,9 +356,13 @@ byId('confirm-delete').addEventListener('click', async () => {
   try { await api(`/api/cases/${state.current.id}/delete`, {}); byId('delete-dialog').close(); newCase(); await refreshHistory(); } catch (exception) { error(exception.message); byId('delete-dialog').close(); } finally { button.disabled = false; }
 });
 byId('source-search').addEventListener('input', renderSourceList); byId('source-kind').addEventListener('change', renderSourceList);
+byId('tree-stage').addEventListener('change', event => selectTreeNode(event.target.value));
+byId('tree-fit').addEventListener('click', () => state.tree?.fit(undefined, 24));
 byId('court-path').addEventListener('change', event => { state.courtPath = Number(event.target.value); state.turnIndex = 0; state.playing = false; ConversationRoom.restartSpeech(); renderCourt(); });
 byId('court-play').addEventListener('click', () => { state.playing = !state.playing; renderCourt(); });
 byId('court-next').addEventListener('click', () => { state.turnIndex++; state.playing = false; renderCourt(); });
+byId('court-prev').addEventListener('click', () => { state.turnIndex--; state.playing = false; renderCourt(); });
+byId('court-turn').addEventListener('change', event => { state.turnIndex = Number(event.target.value); state.playing = false; renderCourt(); });
 byId('court-speed').addEventListener('change', renderCourt);
 window.addEventListener('persona-select', event => {
   const index = courtTurns().findIndex(turn => turn.agent_id === event.detail);

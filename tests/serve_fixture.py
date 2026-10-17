@@ -26,6 +26,9 @@ if __name__ == "__main__":
             manager = Manager(Store(Path(directory) / "runs.db"), Model(client, "gpt-5.4-mini"),
                 engine=Engine(environment={"OPENAI_API_KEY": "local-fixture",
                     "OPENAI_BASE_URL": f"http://127.0.0.1:{provider.server_port}/v1"}))
+            if "--casework" in sys.argv:
+                from test_casework import CaseModel
+                manager.casework.model = CaseModel()
             server = make_server(manager, 8001)
             print("TEST HARNESS ONLY: http://127.0.0.1:8001 — real SDK, localhost response fixture", flush=True)
             try:
@@ -34,8 +37,11 @@ if __name__ == "__main__":
                 pass
             finally:
                 manager.stop.set()
+                manager.casework.stop.set()
                 if manager.worker:
                     manager.worker.join()
+                if manager.casework.worker:
+                    manager.casework.worker.join()
                 server.server_close()
     provider.shutdown()
     provider.server_close()

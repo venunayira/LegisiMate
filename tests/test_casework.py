@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from misofish.casework import (CaseFacts, CaseRequest, CaseWorkbench, assess_timeline,
+from misofish.casework import (CaseFacts, CaseRequest, CaseWorkbench, assess_timeline, build_hearing,
                               CaseStatement, export_brief, grounded_statement_schema,
                               read_authority, resolve_source_quotes, search_authorities, verify_quotes)
 
@@ -71,9 +71,12 @@ class CaseModel:
     def __init__(self):
         self.usage = {"input_tokens": 0, "output_tokens": 0}
         self.calls = 0
+        self.call_limit = 500
         self.payloads = []
 
     def generate(self, schema, instructions, payload, budget, **kwargs):
+        if self.calls >= self.call_limit:
+            raise ValueError("model_call_budget")
         self.calls += 1
         self.payloads.append(json.loads(json.dumps(payload)))
         if schema.__name__ == "ResearchDecision":
@@ -95,6 +98,49 @@ class CaseModel:
 
 
 class CaseWorkflowTests(unittest.TestCase):
+    def test_hearing_options_are_bounded_and_schedule_both_sides(self):
+        body = {"scenario": "A supplier's security cheque was returned unpaid after a dispute.", "consent": True}
+        for side in ("complainant", "respondent"):
+            for rebuttals in (1, 2, 3):
+                for panel in (0, 1, 3):
+                    request = CaseRequest(**body, side=side, rebuttal_rounds=rebuttals, review_panel_size=panel)
+                    actors, steps = build_hearing(request)
+                    self.assertEqual(len(actors), 9 + panel)
+                    self.assertEqual(len(steps), 14 + 4 * rebuttals + panel)
+                    self.assertEqual([step["speaker"] for step in steps[:3]], [1, 3, 2] if side == "complainant" else [1, 2, 3])
+                    self.assertEqual(steps[-1]["phase"], "Bench assessment")
+                    self.assertEqual(sum(step["phase"] == "Educational review" for step in steps), panel)
+                    self.assertTrue(all(1 <= step["speaker"] <= len(actors) for step in steps))
+        for field, invalid in (("rebuttal_rounds", 0), ("rebuttal_rounds", 4), ("rebuttal_rounds", True),
+                               ("review_panel_size", -1), ("review_panel_size", 4), ("review_panel_size", 1.5)):
+            with self.assertRaises(ValidationError):
+                CaseRequest(**body, **{field: invalid})
+
+    def test_full_hearing_has_parties_witnesses_and_rebuttals(self):
+        with tempfile.TemporaryDirectory() as directory:
+            manager = CaseWorkbench(Path(directory) / "cases.db", CaseModel())
+            run = manager.create({"scenario": "A supplier's security cheque was returned unpaid after a dispute.", "consent": True})
+            manager.worker.join(15)
+            saved = manager.get(run["id"])
+            self.assertEqual(saved["status"], "completed")
+            self.assertEqual(saved["config"]["agent_count"], 9)
+            self.assertTrue({"Complainant (Party)", "Accused (Party)", "Complainant Witness", "Defence Witness"}
+                            .issubset({actor["role"] for actor in saved["agents"]}))
+            self.assertEqual(saved["planned_turns"], 66)
+            self.assertEqual(saved["config"]["model_call_budget"], 72)
+            self.assertLessEqual(saved["model_calls"], saved["config"]["model_call_budget"])
+            for branch in saved["branches"]:
+                self.assertEqual(len(branch["turns"]), 22)
+                self.assertEqual(branch["turns"][0]["role"], "Presiding Magistrate")
+                self.assertEqual(branch["turns"][-1]["role"], "Presiding Magistrate")
+                self.assertEqual({turn["data"]["phase"] for turn in branch["turns"]},
+                                 {"Opening arguments", "Party statements", "Witness examination", "Rebuttals", "Bench assessment"})
+                self.assertGreaterEqual(sum(turn["role"] == "Complainant Counsel" for turn in branch["turns"]), 4)
+                self.assertGreaterEqual(sum(turn["role"] == "Respondent Defense Counsel" for turn in branch["turns"]), 4)
+                self.assertIsNone(branch["turns"][0]["data"]["reply_to"])
+                self.assertEqual([turn["data"]["reply_to"] for turn in branch["turns"][1:]],
+                                 [turn["id"] for turn in branch["turns"][:-1]])
+
     def test_statement_schema_binds_exact_passages_to_their_source(self):
         sources = [{"id": "notice", "text": "A written notice must follow the specified statutory timing."},
                    {"id": "service", "text": "Proof of effective service must be established independently."}]
@@ -143,10 +189,10 @@ class CaseWorkflowTests(unittest.TestCase):
             saved = manager.get(run["id"])
             self.assertEqual(saved["status"], "completed")
             self.assertEqual(len(saved["branches"]), 3)
-            self.assertEqual(len(saved["actions"]), 9)
-            self.assertEqual(saved["citation_check"], {"matched": 9, "total": 9})
+            self.assertEqual(len(saved["actions"]), 66)
+            self.assertEqual(saved["citation_check"], {"matched": 66, "total": 66})
             self.assertTrue(any(item["tool"] == "search_precedents" for item in saved["trace"]))
-            starts = [payload for payload in model.payloads if payload.get("role") == "Respondent Defense Counsel"]
+            starts = [payload for payload in model.payloads if payload.get("turn_number") == 1]
             self.assertEqual(len(starts), 3)
             self.assertTrue(all(not payload["conversation"] for payload in starts))
             self.assertEqual(saved["timeline"]["checked"], 0)

@@ -30,11 +30,12 @@
       </header>
       <p id="app-error" class="alert error" role="alert" hidden></p>
       <p id="provider-warning" class="alert warning" hidden>The AI provider is unavailable. Calendar checks remain available.</p>
-      <div id="analysis-progress" class="analysis-progress" hidden><span class="activity-dot"></span><span id="analysis-phase" role="status">Researching the law</span><span id="analysis-count" class="muted"></span><progress id="analysis-meter" max="9" value="0" aria-label="Recorded courtroom turns"></progress></div>
+      <div id="analysis-progress" class="analysis-progress" hidden><span class="activity-dot"></span><span id="analysis-phase" role="status">Researching the law</span><span id="analysis-count" class="muted"></span><progress id="analysis-meter" max="66" value="0" aria-label="Recorded courtroom turns"></progress></div>
       <nav class="case-tabs" role="tablist" aria-label="Case views">
         <button id="tab-intake" role="tab" aria-selected="true" aria-controls="view-intake" type="button"><i data-lucide="file-pen-line" aria-hidden="true"></i>Case details</button>
         <button id="tab-brief" role="tab" aria-selected="false" aria-controls="view-brief" tabindex="-1" type="button"><i data-lucide="clipboard-check" aria-hidden="true"></i>Readiness brief</button>
         <button id="tab-paths" role="tab" aria-selected="false" aria-controls="view-paths" tabindex="-1" type="button"><i data-lucide="git-branch" aria-hidden="true"></i>Argument paths</button>
+        <button id="tab-tree" role="tab" aria-selected="false" aria-controls="view-tree" tabindex="-1" type="button"><i data-lucide="network" aria-hidden="true"></i>Decision tree</button>
         <button id="tab-court" role="tab" aria-selected="false" aria-controls="view-court" tabindex="-1" type="button"><i data-lucide="landmark" aria-hidden="true"></i>Courtroom</button>
         <button id="tab-research" role="tab" aria-selected="false" aria-controls="view-research" tabindex="-1" type="button"><i data-lucide="book-open" aria-hidden="true"></i>Research &amp; sources</button>
       </nav>
@@ -60,6 +61,10 @@
             </div>
             <div class="section-heading section-break"><h2>Supporting notes</h2><label class="file-button" for="evidence-file"><i data-lucide="paperclip" aria-hidden="true"></i>Add text file<input id="evidence-file" class="visually-hidden" type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv"></label></div>
             <textarea id="case-evidence" name="evidence" rows="3" maxlength="16000" aria-label="Supporting notes" placeholder="Relevant extracts from the return memo, notice, agreement, or ledger."></textarea><p id="file-status" class="field-note" role="status">Text extracts only. Original documents are not authenticated.</p>
+            <fieldset class="simulation-settings section-break"><legend>Hearing depth</legend><div class="form-grid">
+              <div><label for="rebuttal-rounds">Rebuttal cycles per path</label><input id="rebuttal-rounds" name="rebuttal_rounds" type="number" min="1" max="3" step="1" value="2" required></div>
+              <div><label for="review-panel-size">Educational review assessors</label><input id="review-panel-size" name="review_panel_size" type="number" min="0" max="3" step="1" value="0" required></div>
+            </div><p id="hearing-estimate" class="field-note" role="status"></p></fieldset>
             <label class="case-consent"><input id="case-consent" type="checkbox" required><span>I agree to send these facts and notes to the configured AI provider and save this case locally.</span></label>
             <div class="form-actions"><button id="analyse-case" class="primary" type="submit" disabled><i data-lucide="sparkles" aria-hidden="true"></i><span id="analyse-label">Analyse case</span></button><span class="small muted">One case analysis at a time</span></div>
           </form>
@@ -68,10 +73,16 @@
       </section>
       <section id="view-brief" role="tabpanel" aria-labelledby="tab-brief" hidden><div id="brief-content" class="empty-state"><i data-lucide="clipboard-list" aria-hidden="true"></i><h2>No case brief yet</h2></div></section>
       <section id="view-paths" role="tabpanel" aria-labelledby="tab-paths" hidden><div id="paths-content" class="empty-state"><h2>No argument paths yet</h2></div></section>
+      <section id="view-tree" role="tabpanel" aria-labelledby="tab-tree" hidden>
+        <div class="section-heading"><h2>Independent hearing paths</h2><button id="tree-fit" class="icon-button" type="button" aria-label="Fit decision tree" title="Fit decision tree"><i data-lucide="maximize" aria-hidden="true"></i></button></div>
+        <label for="tree-stage">Path and hearing stage</label><select id="tree-stage" class="court-turn"><option value="case-root">Case facts</option></select>
+        <div class="decision-tree-layout"><div class="decision-tree-scroll"><div id="decision-tree" role="img" aria-label="Case facts branching into independent courtroom hearings"></div></div><aside id="tree-detail" class="tree-detail" aria-live="polite"><h3>No hearing recorded</h3></aside></div>
+      </section>
       <section id="view-court" role="tabpanel" aria-labelledby="tab-court" hidden>
         <div class="section-heading"><div><h2>Argument rehearsal</h2><p class="small muted">Simulated discussion, not a judicial ruling</p></div><select id="court-path" aria-label="Courtroom argument path"><option value="1">Path 1</option></select></div>
         <div id="room-lanes" class="room-stage" aria-label="Simulated magistrate courtroom"><div id="room-labels"></div></div>
-        <div class="court-controls"><button id="court-play" class="icon-button" type="button" aria-label="Play rehearsal" title="Play rehearsal"><i data-lucide="play" aria-hidden="true"></i></button><button id="court-next" class="icon-button" type="button" aria-label="Next courtroom statement" title="Next courtroom statement"><i data-lucide="step-forward" aria-hidden="true"></i></button><label for="court-speed">Playback<select id="court-speed"><option value="1">1x</option><option value="2" selected>2x</option><option value="4">4x</option></select></label><span id="court-position" class="small muted" role="status">No statements recorded</span></div>
+        <div class="court-controls"><button id="court-prev" class="icon-button" type="button" aria-label="Previous courtroom statement" title="Previous courtroom statement"><i data-lucide="step-back" aria-hidden="true"></i></button><button id="court-play" class="icon-button" type="button" aria-label="Play rehearsal" title="Play rehearsal"><i data-lucide="play" aria-hidden="true"></i></button><button id="court-next" class="icon-button" type="button" aria-label="Next courtroom statement" title="Next courtroom statement"><i data-lucide="step-forward" aria-hidden="true"></i></button><label for="court-speed">Playback<select id="court-speed"><option value="1">1x</option><option value="2" selected>2x</option><option value="4">4x</option></select></label><span id="court-position" class="small muted" role="status">No statements recorded</span></div>
+        <label for="court-turn">Courtroom statement</label><select id="court-turn" class="court-turn"><option value="0">No statements recorded</option></select>
         <div id="court-statement" class="court-statement"><p class="muted">No statements recorded.</p></div>
       </section>
       <section id="view-research" role="tabpanel" aria-labelledby="tab-research" hidden>

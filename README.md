@@ -1,10 +1,20 @@
 # LegisiMate: Evidence-Backed Case Preparation
 
-A local Section 138 cheque-dishonour workbench for individuals, small businesses and advocates, aligned with **Sustainability & Social Impact** through informed access to legal preparation. It combines deterministic calendar checks, a bounded tool-using research agent, local legal retrieval and independent adversarial argument rehearsals.
+A Section 138 cheque-dishonour legal preparation workbench for individuals, small businesses, and advocates, submitted under **Accessibility, Social Good & Sustainability** (*Sustainability & Social Impact*). It combines deterministic statutory calendar checks, a bounded tool-using research agent, local primary-law retrieval (**7,143 statutory provisions** and **10,139 Supreme Court / High Court judgment chunks**), source-bound quotation verification, and three isolated adversarial argument rehearsals.
+
+### Hackathon Submission Artifacts
+
+| Requirement | Artifact / Link |
+| --- | --- |
+| **Category Specification** | **Accessibility / Social Good / Sustainability** (*Sustainability & Social Impact*) |
+| **Proposal Deck (PDF)** | [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf) (14-slide widescreen PDF converted from [LegisiMate-presentation.html](LegisiMate-presentation.html)) |
+| **Submission Guide & 3-Min Video Script** | [SUBMISSION.md](SUBMISSION.md) (Full rubric alignment, Cloud Run deploy commands, and 3-minute video script) |
+| **Google Cloud AI & Cloud Run / Firebase** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [misofish/core.py](misofish/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) |
+| **Pre-Seeded Showcase Case** | [data/showcase_cases.json](data/showcase_cases.json) (`/?case=c810d87708f94f318b01a2d80dc570e9` — 27/27 verified quotes across 9 turns & 3 paths) |
 
 ## Current Workbench
 
-The home page at **http://127.0.0.1:8765/** now provides:
+The home page at **http://127.0.0.1:8765/** (and on Cloud Run) provides:
 
 - Confirmed-input date checks for notice, payment and complaint periods; missing dates remain unresolved. A calendar month is not treated as 30 days.
 - Consent-based model analysis of anonymised facts and optional text extracts. Text, Markdown and CSV notes are supported; PDF/image OCR is not implemented.
@@ -14,7 +24,7 @@ The home page at **http://127.0.0.1:8765/** now provides:
 - A preparation brief with missing evidence, next steps, advocate questions and voluntary-resolution considerations. Unknown or review-needed inputs qualify supportive model assessments.
 - Saved local cases, cancellation, source inspection, Markdown export, local-record deletion and readable 2.5D courtroom replay. Changing saved inputs creates a new analysis; it does not overwrite the original.
 
-The server remains local-only and uses the configured OpenAI Responses-compatible provider. Gemini integration and Google Cloud deployment remain future submission requirements, not completed capabilities. No accuracy, judicial-outcome probability, automated filing or legal-clearance claim is made.
+The server supports **Google Gemini** (`GEMINI_API_KEY`), **Google Cloud Vertex AI** (`GOOGLE_CLOUD_PROJECT`), and OpenAI Responses-compatible providers (`OPENAI_API_KEY`), and ships with a Cloud Run `Dockerfile` and pre-seeded showcase casework (`data/showcase_cases.json`). No accuracy, judicial-outcome probability, automated filing or legal-clearance claim is made.
 
 Case facts, notes, results and research are plaintext in the local `casework` table in `data/runs.db`. Consent is required before model analysis. Deleting a case removes its database record, not copies already sent to the provider, downloaded exports or a secure erasure of storage pages. Use synthetic or properly anonymised cases for demonstrations.
 

@@ -1,0 +1,1391 @@
+[
+  {
+    "id": "c810d87708f94f318b01a2d80dc570e9",
+    "title": "A small textile supplier received a post-dated cheque for unpaid invoices. The cheque was ",
+    "created_at": "2026-10-17",
+    "side": "complainant",
+    "request": {
+      "scenario": "A small textile supplier received a post-dated cheque for unpaid invoices. The cheque was returned with a stop-payment instruction. The customer says it was only a security cheque and disputes the quality of the goods. The supplier reports that a written demand notice was delivered and payment remains unpaid. The supplied dates need confirmation against the original bank and dispatch records.",
+      "side": "complainant",
+      "facts": {
+        "cheque_date": "2026-08-03",
+        "presented_on": "2026-09-02",
+        "valid_until": "2026-10-27",
+        "memo_received_on": "2026-09-03",
+        "notice_sent_on": "2026-09-27",
+        "notice_received_on": "2026-09-30",
+        "complaint_filed_on": "",
+        "debt_evidence": "available",
+        "payment_received": "no"
+      },
+      "evidence": "Reported records: supply agreement, invoices, delivery acknowledgements and bank return memo. The customer disputes the quality of goods. Notice service and the outstanding balance need documentary confirmation.",
+      "as_of": "2026-10-17",
+      "consent": true
+    },
+    "status": "completed",
+    "phase": "Brief ready",
+    "model": "gemini-2.5-flash",
+    "timeline": {
+      "as_of": "2026-10-17",
+      "checks": [
+        {
+          "id": "presentation",
+          "title": "Cheque validity",
+          "status": "checked",
+          "detail": "Presentation is within the supplied validity date.",
+          "source_id": "IND_central_2189_s138_p0"
+        },
+        {
+          "id": "notice",
+          "title": "Written demand notice",
+          "status": "checked",
+          "detail": "The supplied notice date is within 30 days of receiving bank information; confirm the notice and dispatch evidence.",
+          "source_id": "IND_central_2189_s138_p0"
+        },
+        {
+          "id": "payment",
+          "title": "Payment and notice service",
+          "status": "checked",
+          "detail": "The base payment period has expired; confirm non-payment and legally effective notice service.",
+          "source_id": "IND_central_2189_s138_p1"
+        },
+        {
+          "id": "filing",
+          "title": "Complaint filing",
+          "status": "missing",
+          "detail": "Confirm the filing date. The base one-calendar-month period is not a fixed 30 days; court closures, service disputes and condonation require review.",
+          "source_id": "IND_central_2189_s142_p0"
+        },
+        {
+          "id": "debt",
+          "title": "Legally enforceable liability",
+          "status": "checked",
+          "detail": "Supporting records are reported, not independently authenticated. Preserve the agreement, invoices, ledger and payment history.",
+          "source_id": "IND_central_2189_s138_p1"
+        }
+      ],
+      "deadlines": [
+        {
+          "id": "notice",
+          "title": "Base notice deadline",
+          "date": "2026-10-03",
+          "days_remaining": -14,
+          "source_id": "IND_central_2189_s138_p0"
+        },
+        {
+          "id": "payment",
+          "title": "Base payment-period end",
+          "date": "2026-10-15",
+          "days_remaining": -2,
+          "source_id": "IND_central_2189_s138_p1"
+        },
+        {
+          "id": "filing",
+          "title": "Base complaint deadline",
+          "date": "2026-11-16",
+          "days_remaining": 30,
+          "source_id": "IND_central_2189_s142_p0"
+        }
+      ],
+      "checked": 4,
+      "attention": 0,
+      "missing": 1,
+      "caution": "Base calendar calculations from supplied dates, not legal clearance. Excludes court holidays, disputed service, special extensions and judicial condonation."
+    },
+    "sources": [
+      {
+        "id": "IND_central_2189_s138_p0",
+        "title": "The Negotiable Instruments Act, 1881",
+        "section_number": "138",
+        "text": "Act: The Negotiable Instruments Act, 1881 (Act 26 of 1881) | India | Central | In Force\nChapter XVI: O F I N T E R N A T I O N A L LA W | Section 138: Dishonour of cheque for insufficiency, etc., of funds in the account\n\n**138. Dishonour of cheque for insufficiency, etc., of funds in the account.—** Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is returned by the bank unpaid, either because of the amount of money standing to the credit of that account is insufficient to honour the cheque or that it exceeds the amount arranged to be paid from that account by an agreement made with that bank, such person shall be deemed to have committed an offence and shall, without prejudice to any other provision of this Act, be punished with imprisonment for 4[a term which may be extended to two years'], or with fine which may extend to twice the amount of the cheque, or with both:\n\nProvided that nothing contained in this section shall apply unless—\n\n( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;\n\n( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid; and",
+        "source_url": "https://www.indiacode.nic.in/handle/123456789/2189?view_type=browse",
+        "kind": "statute"
+      },
+      {
+        "id": "IND_central_2189_s138_p1",
+        "title": "The Negotiable Instruments Act, 1881",
+        "section_number": "138",
+        "text": "Act: The Negotiable Instruments Act, 1881 (Act 26 of 1881) | India | Central | In Force\nChapter XVI: O F I N T E R N A T I O N A L LA W | Section 138: Dishonour of cheque for insufficiency, etc., of funds in the account\n\n( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.\n\n_Explanation_ .—For the purposes of this section, \"debt of other liability\" means a legally enforceable debt or other liability.",
+        "source_url": "https://www.indiacode.nic.in/handle/123456789/2189?view_type=browse",
+        "kind": "statute"
+      },
+      {
+        "id": "IND_central_2189_s142_p0",
+        "title": "The Negotiable Instruments Act, 1881",
+        "section_number": "142",
+        "text": "Act: The Negotiable Instruments Act, 1881 (Act 26 of 1881) | India | Central | In Force\nChapter XVI: O F I N T E R N A T I O N A L LA W | Section 142: Cognizance of offences**\n\n**142. Cognizance of offences** .—[1] [( _1_ )] Notwithstanding anything contained in the Code of Criminal Procedure, 1973 (2 of 1974),—\n\n( _a_ ) no court shall take cognizance of any offence punishable under section 138 except upon a complaint, in writing, made by the payee or, as the case may be, the holder in due course of the cheque;\n\n( _b_ ) such complaint is made within one month of the date on which the cause of action arises under clause ( _c_ ) of the proviso to section 138:\n\n2[Provided that the cognizance of a complaint may be taken by the Court after the prescribed period, if the complainant satisfies the Court that he had sufficient cause for not making a complaint within such period;]\n\n( _c_ ) no court inferior to that of a Metropolitan Magistrate or a Judicial Magistrate of the first class shall try any offence punishable under section 138.].\n\n> 3[( _2_ ) The offence under section 138 shall be inquired into and tried only by a court within whose local **—** jurisdiction,\n\n( _a_ ) if the cheque is delivered for collection through an account, the branch of the bank where the payee or holder in due course, as the case may be, maintains the account, is situated; or\n\n( _b_ ) if the cheque is presented for payment by the payee or holder in due course, otherwise through an account, the branch of the drawee bank where the drawer maintains the account, is situated.",
+        "source_url": "https://www.indiacode.nic.in/handle/123456789/2189?view_type=browse",
+        "kind": "statute"
+      },
+      {
+        "id": "2021_INSC_823_010",
+        "title": "SUNIL TODI & ORS. versus STATE OF GUJARAT & ANR.",
+        "court": "Supreme Court of India",
+        "citation": "[2021] 9 S.C.R. 1086",
+        "text": "Case: SUNIL TODI & ORS. versus STATE OF GUJARAT & ANR. [[2021] 9 S.C.R. 1086] (2021)\nSection: PARAGRAPH\n\n(a) the cheque has been presented to the bank within a period of six months from theFdate on which it is drawn or within the period of its validity, whichever is earlier;(b) the payee or the holder in due course of the cheque, as the case may be, makes ademand for the payment of the said amount of money by giving a notice; in writing, tothe drawer of the cheque, 9 [within thirty days] of the receipt of information by himfrom the bank regarding the return of the cheque as unpaid; and\n\n(c) the drawer of such cheque fails to make the payment of the said amount of moneyto the payee or, as the case may be, to the holder in due course of the cheque, withinGfifteen days of the receipt of the said notice.Explanation.—For the purposes of this section, “debt of other liability” means alegally enforceable debt or other liability.”\n\n11It was held that the view taken by the Andhra Pradesh High Court in SwastikCoaters v. Deepak Bros, 1997 Cri LJ 1942 (AP), the Gujarat High Court in ShankuConcreates v. State of Gujarat, 2000 Cro LJ 1988 (Guj), the Madras High Court inHBalaji Seafoods Exports v. Mac Industries, (1999) 1 CTC 6 (Mad).\n\nor past adjudicated liability is sine qua non for bringing an offenceunder Section 138. If a cheque is issued as an advance paymentfor purchase of the goods and for any reason purchase order isnot carried to its logical conclusion either because of its cancellationor otherwise, and material or goods for which purchase orderwas placed is not supplied, in our considered view, the chequecannot be held to have been drawn for an existing debt or liability.The payment by cheque in the nature of advance payment indicatesthat at the time of drawal of cheque, there was no existing liability.”\n\n19. Drawing the distinction between civil and criminal liability, itwas observed that if there is a breach in the condition of advance payment,it would not incur criminal liability under Section 138 of the NI Act sincethere is no legally enforceable debt or liability at the time when the chequewas drawn.The Court held that if at the time when a contract is enteredinto, the purchaser has to pay an advance and there was a breach ofthat condition, the purchaser may have to make good the loss to theseller, but this would not occasion a criminal liability under Section 138.The issuance of a cheque towards advance payment at the time of theexecution of the contract would not - in the view which has adopted inIndus Airways - be considered as a subsisting liability so as to attractan offence under Section 138 upon the dishonor of the cheque.\n\n20. A later judgment of a two judge Bench in SampellySatyanarayana Rao v. Indian Renewable Energy DevelopmentAgency Limited[12 ]considered the decision in Indus Airways. InSampelly, the appellant was the Director of a company which wasengaged in power generation, while the respondent was a governmententerprise engaged in renewable energy. The respondent agreed toadvance a loan for setting up a power project and the agreement envisagedthat post-dated cheques towards payment of installments of the loanswould be given by way of security. The cheques having been dishonored,complaints were instituted under Section 138 which led to quashingpetitions filed before the High Court. The submission which was urgedbefore this Court was that dishonor of the post-dated cheques given byway of security did not amount to a legally enforceable debt or liabilityunder Section 138 in presentia. This Court held, after adverting to thedecision in Indus Airways that if on the date of the cheque, a liability ordebt exists or the amount has become enforceable, Section 138 would\n\nAB\n\nC\n\nD\n\nE\n\nF\n\nG",
+        "kind": "precedent"
+      },
+      {
+        "id": "2020_INSC_195_000",
+        "title": "APS FOREX SERVICES PVT. LTD. versus SHAKTI INTERNATIONAL FASHION LINKERS & ORS.",
+        "court": "Supreme Court of India",
+        "citation": "[2020] 2 S.C.R. 811",
+        "text": "Case: APS FOREX SERVICES PVT. LTD. versus SHAKTI INTERNATIONAL FASHION LINKERS & ORS. [[2020] 2 S.C.R. 811] (2020)\nSection: BODY\n\n[TITLE] # [2020] 2 S.C.R. 811\n\n[TITLE] # APS FOREX SERVICES PVT. LTD.\n\nv.\n\nSHAKTI INTERNATIONAL FASHION LINKERS & ORS.\n\n(Criminal Appeal No. 271 of 2020)\n\n[SECTION] ## FEBRUARY 14, 2020\n\n[SECTION] ## [ASHOK BHUSHAN AND M. R. SHAH, JJ.]\n\nNegotiable Instruments Act, 1881 – s.139 – Presumption asto legally enforceable debt or liability – Dishonour of four chequesissued by accused – Fresh consolidated cheque issued – Dishonourof the said cheque on presentation due to Stop Payment – Complaintunder s.138 – Admission of accused of issuance of cheque as wellas the signature on the cheque –  Acquittal by courts below – Appealby complainant – Plea of original accused that cheque was issuedtowards the security and the complainant misused the cheque –Held: The issuance of cheque by the accused and the signature ofthe accused on the said cheque were not disputed by the accused –The accused also not disputed that there were transactions betweenthe parties – Even as per the statement of the accused, which wasrecorded at the time of the framing of the charge, he admitted thatsome amount was due and payable – In the reply to the statutorynotice, no plea was taken by accused that the cheque was given byway of security – The cheque in question was issued for the secondtime – Therefore, once the accused admitted the issuance of chequewhich bore his signature, there was presumption that there existed alegally enforceable debt or liability under s.139 Act – However,such a presumption is rebuttable in nature and the accused isrequired to lead the evidence to rebut such presumption – Theaccused was required to lead evidence that the entire amount dueand payable to the complainant was paid – The story put forwardby the accused that the cheques were given by way of security notbelievable in absence of further evidence to rebut the presumptionand more particularly the cheque in question was issued for thesecond time, after the earlier cheques were dishonoured – Both, thetrial court as well as High Court, committed error in shifting theburden upon the complainant to prove the debt or liability, withoutappreciating the presumption under s.139 of N.I. Act – Order of\n\n811\n\nA\n\nB\n\nCD\n\nE\n\nF\n\nG\n\nH\n\nAacquittal is set aside – Respondents are guilty for the offence unders.138 of the Act.\n\nNegotiable Instruments Act, 1881 – s.139 – Presumptionunder – s.139 of the Act is an example of reverse onus clause and,therefore, once the issuance of the cheque is admitted and even theBsignature on the cheque is admitted, there is always a presumptionin favour of the complainant that there existed legally enforceabledebt or liability and thereafter it is for the accused to rebut suchpresumption by leading evidence.\n\nNegotiable Instruments Act, 1881 – s.139 – FinancialCcapacity of the complainant – When the accused questions thefinancial capacity of the complainant in support of his probabledefence, despite the presumption under s.139 of the Act about thepresumption of legally enforceable debt and that such presumptionis rebuttable, the onus shifts on the complainant to prove his financialcapacity and at that stage the complainant is required to lead theDevidence to prove his financial capacity, more particularly when itis a case of giving loan by cash and thereafter issuance of a cheque– In the instant case, the accused never questioned the financialcapacity of the complainant.\n\nAllowing the appeals, the CourtE",
+        "kind": "precedent"
+      },
+      {
+        "id": "2020_INSC_195_001",
+        "title": "APS FOREX SERVICES PVT. LTD. versus SHAKTI INTERNATIONAL FASHION LINKERS & ORS.",
+        "court": "Supreme Court of India",
+        "citation": "[2020] 2 S.C.R. 811",
+        "text": "Case: APS FOREX SERVICES PVT. LTD. versus SHAKTI INTERNATIONAL FASHION LINKERS & ORS. [[2020] 2 S.C.R. 811] (2020)\nSection: CONCLUSION\n\nAllowing the appeals, the CourtE\n\nHELD:  1. It was the case on behalf of the accused that thecheque was given by way of security and the same was misusedby the complainant. However, nothing is on record that in thereply to the statutory notice it was the case on behalf of theaccused that the cheque was given by way of security. Earlier theFaccused issued cheques which came to be dishonoured on theground of ‘insufficient funds’ and thereafter a fresh consolidatedcheque was given which has been returned unpaid on the groundof “STOP PAYMENT”. Therefore, the cheque in question wasissued for the second time. Therefore, once the accused hasGadmitted the issuance of cheque which bears his signature, thereis presumption that there exists a legally enforceable debt orliability under Section 139 of the N.I. Act. However, such apresumption is rebuttable in nature and the accused is requiredto lead the evidence to rebut such presumption. The accused\n\nwas required to lead evidence that the entire amount due andpayable to the complainant was paid. [Para 5.2][818-F-H; 819-A-B]\n\n2. In the instant case, the accused never questioned thefinancial capacity of the complainant. Whenever the accused hasquestioned the financial capacity of the complainant in support ofhis probable defence, despite the presumption under Section 139of the N.I. Act about the presumption of legally enforceable debtand such presumption is rebuttable, thereafter the onus shiftsagain on the complainant to prove his financial capacity and atthat stage the complainant is required to lead the evidence toprove his financial capacity, more particularly when it is a case ofgiving loan by cash and thereafter issuance of a cheque.  That isnot a case here. [Para 6.4][822-B-D]\n\n3. Considering the fact that the accused has admitted theissuance of the cheques and his signature on the cheque and thatthe cheque in question was issued for the second time, after theearlier cheques were dishonoured and that even according tothe accused some amount was due and payable, there is apresumption under Section 139 of the N.I. Act that there exists alegally enforceable debt or liability. Of course such presumptionis rebuttable in nature. However, to rebut the presumption theaccused was required to lead the evidence that full amount dueand payable to the complainant has been paid.  In the presentcase, no such evidence was led by the accused. The story putforward by the accused that the cheques were given by way ofsecurity is not believable in absence of further evidence to rebutthe presumption and more particularly the cheque in questionwas issued for the second time, after the earlier cheques weredishonoured. Therefore, both the courts below have materiallyerred in not properly appreciating and considering thepresumption in favour of the complainant that there exists legallyenforceable debt or liability as per Section 139 of the N.I. Act.Both, the trial court as well as the High Court committed errorin shifting the burden upon the complainant to prove the debt orliability, without appreciating the presumption under Section 139of N.I. Act. Section 139 of the Act is an example of reverse onusclause and therefore once the issuance of the cheque has been\n\nA\n\nBC\n\nDE\n\nF\n\nG\n\nH\n\nAadmitted and even the signature on the cheque has been admitted,there is always a presumption in favour of the complainant thatthere exists legally enforceable debt or liability and thereafter itis for the accused to rebut such presumption by leading evidence.The original accused - respondents are held guilty for the offenceunder Section 138 of the N.I. Act. [Paras 7, 8][822-D-H; 823-A-BC]\n\nRangappa v. Sri Mohan (2010) 11 SCC 441 : [2010] 6SCR 507; Kisan Rao v. Shankargouda (2018) 8 SCC165 : [2018] 5 SCR 69; K.N. Beena v. Muniyappan(2001) 8 SCC 458 : [2001] 4 Suppl. SCR 374; KumarCExports v. Sharma Carpets (2009) 2 SCC 513 : [2008]17 SCR 572 – referred to.\n\n–Basalingappa v. Mudibasappa (2019) 5 SCC 418 held inapplicable.\n\n[SECTION] ## Case Law Reference\n\n[SECTION] ## D",
+        "kind": "precedent"
+      },
+      {
+        "id": "2003_INSC_658_006",
+        "title": "GOA PLAST (P.) LTD. versus CHICO URSULA DSOUZA",
+        "court": "Supreme Court of India",
+        "citation": "[2003] SUPP. 5 S.C.R. 835",
+        "text": "Case: GOA PLAST (P.) LTD. versus CHICO URSULA DSOUZA [[2003] SUPP. 5 S.C.R. 835] (2003)\nSection: SECTION\n\n\"In this case no evidence or history being traced to show the A relationship between the complainant and respondent accused. From the cross-examination it transpired that the respondent accused was working as the Manager of the Factory. Thus, relation were Master and Servant or employee or employer there being no business or commercial or mercantile relation between the parties.\"\n\nB\n\nThe High Court, in our opinion, has failed to appreciate that on the facts of the instant case, the liability was a legally enforceable debt or liability as per the explanation to Section 138 of the Act, therefore, the relationship between the appellant and the respondent was not at all a factor germane to the proceedings for an offence under Section 138 of the Act. The liability was C legally enforceable debt is clear from the finding of the High Court at paragraph 19 which is quoted below:\n\n\"The Appellant-Company has attempted to short circuit the suit by compelling the accused respondent to pay the amount.\"\n\nBoth the Courts, in our view, failed to consider the important aspect as D to the stop payment instructions issued by the respondent. Ordinarily, the stop payment instructions are issued to the Bank by the account holder when there is no sufficient amount in the account. In the present case, the reason for stopping the payment, however, can be manifold. It is essential that to issue stop payment instructions, there must be funds in the accounts in the E first place. On this aspect, the Courts below have failed to see whether as on the date of signing of the cheque dated 20.07 .1992, the date of presentation of the cheque dated 10.01.1993, the date of writing of letter dated 12.02.1993 . and the date on which stop payment instructions were issued to the Bank, the respondent has sufficient funds in the account. Both the Courts below have held that after issuing the letter, the respondent has stopped the payment, F therefore, no ma/a fide can be attributed. It is pertinent to notice that the appellant made an application to the Bank Manager to ascertain whether or not there was sufficient amount in the account for the payment dated 02.06.1995. The learned Judicial Magistrate disallowed the said application without hearing the complainant holding that there is no dispute about the dishonour of the G cheque by the accused, therefore, no purpose will be served by the Bank Manager as the dishonour is not in issue. Had the Bank Manager been examined it would have been clear whether the account had sufficient amount to pay the amount of the cheque or not. It would have enabled also to know on what date stop payment order was sent by the drawer to the Bank. The learned Magistrate committed a serious mistake in not allowing the application H\n\n[SECTION] ## SUPREME COURT REPORTS [2003] SUPP. 5 S.C.R.\n\n[SECTION] ## 844\n\nA and the proceedings passed thereon have suffered from serious infirmity going to the root of the matter. The High Court and the learned Judicial Magistrate have also not noticed that the respondent was otherwise admitting the liability when the cheques were being issued. This was sufficient evidence to prove that there was a liability and as per the presumption under Section 139 of the Act, the cheques issued, therefore, were towards the liability even B as per the version of the respondent. The relevant Section which is Section 138 of the Act giving the ingredients of the offence. In the opening words of the Section it is stated:\n\n\"Where any cheques drawn by a person on an account maintained by him with a bank for payment of any amount of money to any person from out of that account for the discharge in whole or in part, of any debt or other liability.\"\n\n[SECTION] ## c",
+        "kind": "precedent"
+      },
+      {
+        "id": "2025_INSC_427_003",
+        "title": "ASHOK SINGH versus STATE OF UTTAR PRADESH & ANR. R1: STATE OF UTTAR PRADESH R2: RAVINDRA PRATAP SINGH",
+        "court": "Supreme Court of India",
+        "citation": "[2025] 4 S.C.R. 504",
+        "text": "Case: ASHOK SINGH versus STATE OF UTTAR PRADESH & ANR. R1: STATE OF UTTAR PRADESH R2: RAVINDRA PRATAP SING... [[2025] 4 S.C.R. 504] (2025)\nSection: PARAGRAPH\n\n(a) the cheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;(b) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice in writing, to the drawer of the cheque, within thirty days of the receipt of information by him from the bank regarding the return of the cheque as unpaid; and\n\n(c) the drawer of such cheque fails to make the payment of the said amount of money to the payee or as the case may be, to the holder in due course of the cheque within fifteen days of the receipt of the said notice.Explanation.—For the purposes of this section, “debt or other liability” means a legally enforceable debt or other liability.’\n\n[SECTION] ## Ashok Singh v. State of Uttar Pradesh & Anr.\n\n[SECTION] ## APPELLANT’S SUBMISSIONS:\n\n5. Mr. Pinaki Addy, learned counsel for the appellant, submitted that the High Court fell in error in upsetting the concurrent findings of facts recorded by the Courts below by re-appreciating and re-analyzing the evidence. It was argued that during the cross-examination of the accused, it was admitted that the intimation regarding loss of the cheque was sent to the police in 2011 i.e., much after the cheque was presented by the appellant on 17.03.2010. The said intimation is dated 12.03.2010 which proves that the document was manufactured in 2011 and back-dated. The intimation also was never converted into a First Information Report (hereinafter referred to as ‘FIR’), hence it carries no evidentiary value.\n\n6. It was submitted that the cheque was issued in discharge of loan availed by the accused and hence presumption under Section 118 read with Section 139 of the Act would operate in the appellant’s favour. The burden of proof lies on the accused and he has to raise a probable defence. In the absence of any evidence, a mere oral statement that there did not exist any debt would not be sufficient to rebut the presumption, especially when the signature on the cheque has been admitted by the accused in his evidence.\n\n7. It was further submitted that the Trial Court and the Appellate Court have duly considered the evidence on record and have rightly disbelieved the story put forth by the accused and held the prosecution case to have been proved beyond reasonable doubt. The counsel placed reliance on the following decisions: Bir Singh v. Mukesh Kumar, (2019) 4 SCC 197; Rajesh Jain v. Ajay Singh, (2023) 10 SCC 148; Kishan Rao v. Shankargouda, (2018) 8 SCC 165, and; Uttam Ram v. Devinder Singh Hudan, (2019) 10 SCC 287. It was prayed that the appeal be allowed.\n\n[SECTION] ## RESPONDENT NO.2-ACCUSED’S SUBMISSIONS:\n\n8. Per contra, Mr Shadan Farasat, learned senior counsel for the respondent no.2-accused submitted, at the outset, that the Impugned Order is good in law and does not require any interference by this Court. It was submitted that no proof of withdrawal of Rs.22,00,000/- (Rupees Twenty-Two Lakhs) was placed on record by the complainant. The entire story put forth by the complainant is fictitious and he has failed to prove the circumstances in which the cheque was handed over and the existence of any business relations between the parties.\n\n[SECTION] ## Digital Supreme Court Reports\n\n9. It was submitted that the complainant had also failed to prove his capacity to advance such huge amount of loan in the absence of adducing any evidence viz. ledger, Income-Tax Returns, money-lending license, etc. In such circumstances, the complainant also failed to prove that the cheque was issued for a legally enforceable debt and such debt existed on the date of presentation of the cheque.",
+        "kind": "precedent"
+      },
+      {
+        "id": "2020_INSC_195_007",
+        "title": "APS FOREX SERVICES PVT. LTD. versus SHAKTI INTERNATIONAL FASHION LINKERS & ORS.",
+        "court": "Supreme Court of India",
+        "citation": "[2020] 2 S.C.R. 811",
+        "text": "Case: APS FOREX SERVICES PVT. LTD. versus SHAKTI INTERNATIONAL FASHION LINKERS & ORS. [[2020] 2 S.C.R. 811] (2020)\nSection: BODY\n\n6.4 Now so far as the reliance is placed by Learned Counselappearing on behalf of the accused on the decision of this Court in thecase of Basalingappa (supra), on going through the said decision, weare of the opinion that the said decision shall not be applicable to thefacts of the case on hand and/or the same shall not be of any assistanceto the accused. In that case before this Court, the defence by the accusedwas that the cheque amount was given by the complainant to the accused\n\nA\n\nB\n\nC\n\nD\n\nEF\n\nG\n\nH\n\nAby way of loan. When the proceedings were initiated under Section 138of the N.I. Act the accused denied the debt liability and the accusedraised the defence and questioned the financial capacity of thecomplainant. To that, the complainant failed to prove and establish hisfinancial capacity. Therefore, this Court was satisfied that the accusedhad a probable defence and consequently in absence of complainantBhaving failed to prove his financial capacity, this Court acquitted theaccused. In the present case, the accused never questioned the financialcapacity of the complainant. We are of the view that whenever theaccused has questioned the financial capacity of the complainant insupport of his probable defence, despite the presumption under SectionC139 of the N.I. Act about the presumption of legally enforceable debtand such presumption is rebuttable, thereafter the onus shifts again onthe complainant to prove his financial capacity and at that stage thecomplainant is required to lead the evidence to prove his financial capacity,more particularly when it is a case of giving loan by cash and thereafterissuance of a cheque. That is not a case here.D\n\n7. Coming back to the facts in the present case and consideringthe fact that the accused has admitted the issuance of the cheques andhis signature on the cheque and that the cheque in question was issuedfor the second time, after the earlier cheques were dishonoured and thateven according to the accused some amount was due and payable, thereEis a presumption under Section 139 of the N.I. Act that there exists alegally enforceable debt or liability. Of course such presumption isrebuttable in nature. However, to rebut the presumption the accusedwas required to lead the evidence that full amount due and payable tothe complainant has been paid. In the present case, no such evidenceFhas been led by the accused. The story put forward by the accused thatthe cheques were given by way of security is not believable in absenceof further evidence to rebut the presumption and more particularly thecheque in question was issued for the second time, after the earliercheques were dishonoured. Therefore, both the courts below have\n\nmaterially erred in not properly appreciating and considering theGpresumption in favour of the complainant that there exists legallyenforceable debt or liability as per Section 139 of the N.I. Act. It appearsthat both, the Learned Trial Court as well as the High Court, havecommitted error in shifting the burden upon the complainant to prove thedebt or liability, without appreciating the presumption under Section 139Hof N.I. Act.  As observed above, Section 139 of the Act is an example of\n\nreverse onus clause and therefore once the issuance of the cheque hasbeen admitted and even the signature on the cheque has been admitted,there is always a presumption in favour of the complainant that thereexists legally enforceable debt or liability and thereafter it is for theaccused to rebut such presumption by leading evidence.",
+        "kind": "precedent"
+      },
+      {
+        "id": "DLHC010410452011_002",
+        "title": "CRL.M.C./862/2011 of SANTOSH KUMAR GUPTA Vs STATE & ANR",
+        "court": "High Court of Delhi",
+        "citation": "",
+        "text": "Case: CRL.M.C./862/2011 of SANTOSH KUMAR GUPTA Vs STATE & ANR (2011)\nCourt: High Court of Delhi\nSection: PARAGRAPH\n\ncrl. M.c. N os .227 Ll 2Ot0 & [862 ]I 20tt\n\nPage 4 of 1.0\n\n.\n\n\\\n\n,\n\n9. In the decision reported as 2010 (2) Kerala Law [,]Times Vs. Krishna Menon, in para 37, it was observed asQevan\n\nunder:-\n\n\"37.. We do in these circumstances reiterate the lawthus. ['lf ]the signature in the cheque is [proved ]to benot genuine, the instrument cannot be recl<oned as [a]cheque and the same cannot attract culpability [under]S.138 of the Negotiable Instruments Act. But [the]decision as to whether the signature is [genuine ]adwhether the execution is proved will have to be takenby a court, the mere fact that the banker [returns ][the]cheque for the reason that the signature [differs is ][no]reason for the court to mechanically swallow [that]reason. The courts are obliged to consider [whether]the real reason for dishonor is insufficiency of [funds or]not. We may at the risk of repetition [proceed ][to]reiterate that if as a matter of fact [the ][signatures ][are]not genuine and the court finds so, [needless ][to ][say]S.138 of the N.l.Act would not apply. [But ][the]endorsement by the banker is [not ][conclusive. ][The]court will have to ascertain the [real ][reason' ][The]challenge on this [ground ]is in [these ][circumstances,]rejected. [\"]\n\n10.ln the decision reported as [(2006) 134 ][Comp ][Cas]it295 [(Karn)]\n\nhas been observed as under:-\n\n\"To decide the second contention of the [petitioner, ][it]is beneficial to refer to certain [observations made ][by]the apex court in the case of [NEPC ][Micon ][Ltd' ][Vs.]Maama Leasina Ltd. [(1999) ]96 Comp [Cas ][822; ][AIR]1999 SC 1952, wherein it is observed [in ][paragraph ][15]thus:\n\n\"ln view of'the aforesaid discussion we are [of]the opinion that even though Section [138 ][is ][a]i,?:ii':iil'J3;,'l,l\".J[:.f i;L3l'1i.\".^f [i;i\"L?]and purpose so as [to ][suppress ][the ][mischief ][and]advance the remedy. [As ][stated ][above, ][Section]Crl.M.C. N os .227 [1, ]/ zOtO & 862 / 2011Page 5 of 10\n\na\n\n138 of the Act has created a contractual breachas an offence and the legislative [purpose is ][to]promote efficacy of banking and of ensuringthat in commercial or contractual transactionscheques are not dishonoured and credibility [in]tra nsacting business throug h cheq ues [is]maintained. The above interpretation would [be]in accordance with the [principle ]ofinterpretation quoted above ['brush ]away [the]cobweb varnish, and shew the transactions [in]their true light' [(Wilmot ]C.J.,) or [(by ][Maxwell) ]['to]carry out effectually the object of a statute, [it]must be so construed as to defeat all attemptsto do, or avoid doing, to an indirect or circuitousmanner that which it has [prohibited'. ][Hence,]when the cheque is returned by a bank [with ][an]endorsement' account closed', it [would ][amount]to returning the cheque unpaid [because 'the]amount of money standing [to ][the ][credit ][of ][that]account is insufficient [to ][honour ][the ][cheque' ][as]envisaged in Section [138 of ][the ][Act.]\n\nThe bank has also returned [the ][cheques on the]ground that the drawer's signatures found [on]the cheques differ, lt is, but, natural [for ][the]bank to return the cheques if [the ][drawer's]signature differs from tfie [original ][signature]found in the bank records, [lt ][is ][known only ][to]the drawer as to why he made [such signatures]that too on series of cheques, [which differ ][from]the signature found in the original [records ][of]the bank. The reason is obvious. [In ][this]context, the contention of [learned ][counsel ][for]the respondent that intentionally [the ][drawer]must have changed his signature [with the ][sole']intention that the cheques shouid not [be]honoured, cannot be lightly brushed [aside.]\n\nXXXXX\n\nPage 6 of 10\n\ncrl..M.c. N o s .227 [L ]/ [2010 ][& ][862 ]I [20LL]\n\n\\\n\na",
+        "kind": "precedent"
+      },
+      {
+        "id": "2012_INSC_175_003",
+        "title": "UNITED INDIA INSURANCE CO. LTD. versus LAXMAMMA & ORS.",
+        "court": "Supreme Court of India",
+        "citation": "[2012] 5 S.C.R. 261",
+        "text": "Case: UNITED INDIA INSURANCE CO. LTD. versus LAXMAMMA & ORS. [[2012] 5 S.C.R. 261] (2012)\nSection: PARAGRAPH\n\n(2) For the purposes of this section, in the case of risks for which premium can be ascertained in advance, the risk may be assumed not earlier than the date on which the G premium has been paid in cash or by cheque to the insurer.\n\n1. (1998) 1 sec 371.\n\n2. c2001) 3 sec 151.\n\nH 3. c2008) 2 sec 595.\n\n[TITLE] # UNITED INDIA INSURANCE CO. LTD. v. LAXMAMMA 267 & ORS. [R.M. LODHA, J.]\n\nExplanation.- Where the premium is tendered by postal money order or cheque sent by post, the risk may be assumed on the date on which the money order is booked or the cheque is posted, as the case may be.\n\n(3) Any refund of premium which may become due to an\n\ninsured on account of the cancellation of a policy or alteration in its terms and conditions or otherwise shall be paid by the insurer directly to the insured by a crossed or order cheque or by postal money order and a proper receipt shall be obtained by the insurer from the insured, and such refund shall in no case be credited to the account of the agent.\n\n(4) Where an insurance agent collects a premium on a policy of insurance on behalf of an insurers, he shall deposit with, or dispatch by post to, the insurer, the premium so collected in full without deduction of his commission within twenty-four hours of the collection excluding bank and postal holidays.\n\n(5) The Central Government, may, by rules, relax the\n\nrequirements of sub-section (1) in respect of particular categories in insurance policies.\n\n(6) The Authority may, from time to time, specify, by the regulations made by it, the manner of receipt of premium by the insurer.\"\n\nThe above provision states that no risk is assumed by the insurer unless premium payable is received in advance.\n\n8. The Motor Vehicles Act, 1988 (for short, 'the M.V. Act')\n\nin Chapter XI deals with insurance of motor vehicles against third party risks. Section 145 in that Chapter provides for definitions: (a) authorised insurer, (b) certificate of insurance, (c) liability, (d) policy of insurance, (e) property, (f) reciprocating country and (g) third party.\n\nA\n\n8\n\nC\n\nD\n\nE\n\nF\n\nG\n\nH\n\n[SECTION] ## A\n\n9. Section 146 mandates insurance of a motor vehicle\n\nagainst third party risk. Inter alia, it provides that no person shall use the motor vehicle in a public place unless a policy of insurance has been taken with regard to such vehicle complying with requirements as set out in Chapter XI. The owner of vehicle, 8 [thus, ][is ][statutorily mandated ][to ][obtain insurance for the motor ]vehicle to cover the third party risk except in exempted and exception categories as set out in Section 146 itself.\n\n10. Section 147 makes provision for requirements of policies and limits of liability. Sub-section (5) thereof is relevant C for the present purposes which reads as follows :\n\n\"S. 147. - Requirements of policies and limits of liability.-\n\n(1)) to (4) xxx xxx xxx xxx xxx xxx\n\n[SECTION] ## D\n\n(5) Notwithstanding anything contained in any law for the time being in force, an insurer issuing a policy of insurance under this section shall be liable to indemnify the person or classes of persons specified in the policy in respect of· E any liability which the policy purports to cover in the case of that person or those classes of persons.\"\n\n11. Section 149 deals with the duty of insurers to satisfy judgments and awards against persons insured in respect of F third party risks. Sub-section (1) which is relevant for the present purposes reads as under:\n\n\"S.149.- Duty of insurers to satisfy judgments and awards against persons insured in respect of third party risks.- (1) If, after a certificate of insurance has been issued under sub-section (3) of section 147 in favour of the person by whom a policy has been effected, judgment or award in respect of any such liability as is required to be covered by a policy under clause (b) of sub-section (1) of section 147 (being a liability covered by the terms of the policy) or under the provisions of section 163A is obtained\n\n[SECTION] ## G\n\n[SECTION] ## H\n\n[TITLE] # UNITED INDIA INSURANCE CO. LTD. v. LAXMAMMA 269 & ORS. [R.M. LODHA, J.)",
+        "kind": "precedent"
+      },
+      {
+        "id": "DLHC011742012012_004",
+        "title": "CRL.REV.P./619/2012 of HARYANA PETROCHEMICALS LTD. Vs INDIAN PETROCHEMICALS LTD. & ANR.",
+        "court": "High Court of Delhi",
+        "citation": "",
+        "text": "Case: CRL.REV.P./619/2012 of HARYANA PETROCHEMICALS LTD. Vs INDIAN PETROCHEMICALS LTD. & ANR. (2014)\nCourt: High Court of Delhi\nSection: BODY\n\nand a fax message exchange respectively, between the parties\n\nCrl. Rev.P. Nos.619/2012, 620/2012 & 621/2012                                               Page 10 of 18\n\nevidencing the fact that the goods had not been supplied in time; this was also the reason why no invoices and sale receipts had been proved by the complainant.  Submission being reiterated that in the light of this evidence, the presumption as contained in Section 118 of the Act and relied upon by the Courts below is illegal as preponderance of probabilities clearly show that a doubt had been created on the veracity of the transactions and there was no legally payable debt by the petitioner company to the complainant.  In this background, the conviction of the petitioners is wholly illegal.   14 Record shows that in terms of the complaint and the other evidence which includes the testimony of PW-3, on placing of the purchase order by the petitioners, the complainant company would send the goods along with invoices as per the value of the goods.   There was an agreed period and after the expiry of that period, the petitioners would make the payment in regard to the goods and the security cheques would thereafter be returned.  In case the payment was not forthcoming the security cheques were considered as consideration towards supply of goods and the respondent would bank these cheques.   In the instant case, since the payment was not made against all the supplied goods, the\n\nCrl. Rev.P. Nos.619/2012, 620/2012 & 621/2012                                               Page 11 of 18\n\nsecurity cheques got converted into normal cheques against consideration of the goods supplied and therefore they were not to be considered  as security cheques.   This was explained in the complaint.     PW-3 on oath has also reiterated this position.  He deposed that after the supply of the goods, the accused had not given a separate cheque.  The cheque in question was presented to the bank which was returned along with the returning memo after having been dishonoured for the reason “Exceeds Arrangement”.   Marks DA and DB which is a letter and fax message exchanged between the parties only sought expedition of the dispatch of the goods.  Neither of these communications state that the goods had not been supplied by the complainant company and as such the payment was not due to the complainant company.   The fact finding courts after the scrutiny of these documents had also noted  that these documents had not been proved and could not really be read in evidence as they were only photocopies of the original; even otherwise they did not advance the version of the petitioners that the goods had not been supplied by the complainant company. The petitioner in his statement under Section 313 of the Cr.P.C had set up a contrary stand.  At that stage he stated that no supply was made by the complainant company\n\nCrl. Rev.P. Nos.619/2012, 620/2012 & 621/2012                                               Page 12 of 18\n\nand as such no money was payable to the company.   If this was factually correct, nothing prevented the petitioners from leading evidence in defence; Marks DA and DB which were only photocopies of the documents could well have been proved through independent evidence.   None of this was resorted to.   15 In this context the Supreme Court in the case of  I.C.D.S. Ltd. Vs. Beena Shabeer and Anr. reported as (2002) 6 SCC 426 had negatived the submission advanced by the accused that a security cheque would not be covered within the ambit of Section 138 of the Act.  Emphasis was laid on the word “where any cheque”.  In this context the observations of the Apex Court are relevant and read herein as under:",
+        "kind": "precedent"
+      },
+      {
+        "id": "2022_INSC_800_016",
+        "title": "KOTAK MAHINDRA BANK LIMITED versus KEW PRECISION PARTS PRIVATE LIMITED & ORS.",
+        "court": "Supreme Court of India",
+        "citation": "[2022] 19 S.C.R. 212",
+        "text": "Case: KOTAK MAHINDRA BANK LIMITED versus KEW PRECISION PARTS PRIVATE LIMITED & ORS. [[2022] 19 S.C.R. 212] (2022)\nSection: PARAGRAPH\n\n12 AIR 2021 SC 5249\n\n13 AIR 1962 Cal 115\n\n14 AIR 1974 Cal 170\n\n15 ILR (1972) 2 Del 712\n\n16 ILR 1987 Kar 2673\n\nAB\n\nC\n\nD\n\nE\n\nF\n\nG\n\nH\n\nAthough it is accompanied by refusal to pay, deliver, perform or permit toenjoy or is coupled with claim to set off, or is addressed to a personother than a person entitled to the property or right. “Signed” is to beconstrued to mean signed personally or by an authorised agent.\n\n66. An acknowledgement made in writing within the period ofBlimitation extends the period of limitation. In this case, there was noacknowledgement of debt within three years from the period on whichthe account of the Corporate Debtor was declared NPA or within threeyears from the date on which the loan facilities were recalled.\n\n67. The Adjudicating Authority proceeded on the basis that theCoffer of settlement made by the Corporate Debtor on 12[th] December2018 and rejection thereof by the appellate showed the Corporate Debtorhad conceded that there was a continuous cause of action. It is, however,the case of the Appellant Financial Creditor in this appeal that terms ofsettlement were executed on 20th December 2018 whereby theCorporate Debtor agreed to repay the amount of Rs.24,55,00,000/- withinD31[st] December 2018. The Adjudicating Authority, however, did not referto any settlement. Nor did it address the question of whether anyagreement for repayment of debt came into existence in December 2018and, if so, whether the agreement would attract Section 25(3) of theContract Act.E68. The Appellate Tribunal (NCLAT) found that there was noacknowledgement of debt within the period of limitation of three years.Holding the application of the Appellant Financial Creditor, under Section7 of the IBC, to be barred by limitation, the Appellate Authority (NCLAT)allowed the appeal.F\n\n69. The Appellate Tribunal (NCLAT) also did not notice the termsof settlement stated to have been executed on 20[th] December 2018,possibly because the attention of the NCLAT was not drawn to anyterms of the settlement. The Appellate Tribunal (NCLAT) did not,therefore, have the occasion to consider whether Section 25(3) of theGContract Act would be attracted. The Appellate Tribunal (NCLAT), asobserved above, proceeded on the basis that the CIRP proceedings werebarred by limitation in the absence of any acknowledgement of debtwithin the period of limitation, and closed the CIRP proceedings in theNCLT, without considering the question of applicability of Section 5 ofthe Limitation Act for condonation of delay, to proceedings under SectionH7 of the IBC.\n\n70. This Court is of the view that the Appellate Tribunal (NCLATerred in closing the CIRP proceedings without giving the AppellantFinancial Creditor the opportunity to explain if there was sufficient causefor the delay in approaching the NCLT. An appeal being the continuationof original proceedings, the provision of Section 7(5)(b) of the IBC, ofnotifying the Financial Creditor before rejection of a claim, would beattracted. If notified of the proposal to close the proceedings, the AppellantFinancial Creditor might have got the opportunity to rectify the defectsin its application under Section 7 by filing additional pleadings and/ordocuments. As held in Dena Bank (supra), documents can be filed atany time until the application for CIRP is finally dismissed.\n\n71. The appeal is, therefore, allowed. The impugned judgmentand order of the NCLAT is set aside to the extent that the CIRPproceedings have been closed. The Adjudicating Authority shall considerthe application for CIRP afresh, in accordance with law, in the light ofthe observations made above, after giving the Appellant and theRespondent opportunity to file additional affidavits disclosing documents/additional affidavit in response.\n\nAnkit Gyan and Anurag Bhaskar\n\nAppeal allowed.\n\n(Assisted by : Bodhi Ramteke, LCRA)\n\nA\n\nB\n\nC\n\nD\n\nE\n\nF\n\nG\n\nH",
+        "kind": "precedent"
+      },
+      {
+        "id": "2024_INSC_640_012",
+        "title": "A.B. GOVARDHAN versus P. RAGOTHAMAN",
+        "court": "Supreme Court of India",
+        "citation": "[2024] 8 S.C.R. 1002",
+        "text": "Case: A.B. GOVARDHAN versus P. RAGOTHAMAN [[2024] 8 S.C.R. 1002] (2024)\nSection: SECTION\n\ni. Rs.40,000 for juvenile welfare in a manner to be decided by the Juvenile Justice Monitoring Committee;\n\nii. Rs.40,000 for welfare of the Advocate-Clerks in a manner to be decided by Hon’ble the Acting Chief Justice, and;\n\niii. Rs.40,000 for legal aid in a manner to be decided by the High Court Legal Services Committee.\n\nReceipt of deposit be filed in the Registry of this Court soon thereafter. In case of non-compliance, the matter will be placed before us with appropriate Office Report.\n\n33. Accordingly, both Impugned Orders stand set aside. The Judgment dated 01.04.2010 passed by the Single Judge stands restored with a slight modification i.e., reduction in the rate of interest which has been claimed by and allowed to the appellant. Interest at the rate of 36% p.a. is on the excessive side and we pare down the same to 12% p.a. in the interest of justice. Hence, simple interest will run only @ 12% p.a. from 24.06.2000 till the date of realisation.\n\n34. The appeals are allowed in the above terms.\n\n35. I.A. No.16204/2019 for exemption from filing Certified Copy of the Impugned Judgment(s) is allowed. I.A. No.180367/2019 for permission to file Additional Documents is allowed.\n\n36. I.A. No.16203/2019 seeks condonation of delay in filing the petitions. There is a delay of 589 days in filing the petition against the First Impugned Order. The petition against the Second Impugned Order is also delayed by approximately 84 days. We are cognizant that the appellant had moved the Division Bench seeking a fresh hearing of the main appeal, which led to passing of the Second Impugned Order. In Collector, Land Acquisition, Anantnag v Mst Katiji(1987) 2 SCC 107, the Court noted that it had been adopting a justifiably liberal approach in condoning delay and that “justice on\n\n[SECTION] ## A.B. Govardhan v. P. Ragothaman\n\nmerits” is to be preferred as against what “scuttles a decision on merits”. Albeit, while reversing an order of the High Court therein condoning delay, principles to guide the consideration of an application for condonation of delay were culled out in Esha Bhattacharjee v Managing Committee of Raghunathpur Nafar Academy(2013) 12 SCC 649. One of the factors taken note of therein was that substantial justice is paramount.[8]\n\n37. In N L Abhyankar v Union of India (1995) 1 MhLJ 503, a Division Bench of the Bombay High Court at Nagpur considered, though in the context of delay vis-à-vis Article 226 of the Constitution, the decision in M/s Dehri Rohtas Light Railway Company Limited v District Board, Bhojpur (1992) 2 SCC 598, and held that “The real test for sound exercise of discretion by the High Court in this regard is not the physical running of time as such, but the test is whether by reason of delay there is such negligence on the part of the petitioner, so as to infer that he has given up his claim or whether before thepetitioner has moved the Writ Court, the rights of the third partieshave come into being which should not be allowed to be disturbed unless there is reasonable explanation for the delay.”[9] The Bombay High Court’s eloquent statement of the correct position in law found approval in Municipal Council, Ahmednagar v Shah Hyder Beig(2000) 2 SCC 48 and Mool Chandra v Union of India, 2024 SCC OnLine SC 1878.\n\n38. In the wake of the authorities above-mentioned, taking a liberal approach subserving the cause of justice, we condone the delay and allow I.A. No.16203/2019, subject to payment of costs of Rs.20,000/- (Rupees Twenty Thousand) by the appellant to the respondent.\n\nResult of the case: Appeals allowed.\n\n†Headnotes prepared by: Divya Pandey\n\n8 Para 21.3 of Esha Bhattacharjee(supra).\n\n9 Emphasis supplied.",
+        "kind": "precedent"
+      },
+      {
+        "id": "2024_INSC_456_027",
+        "title": "DELHI DEVELOPMENT AUTHORITY versus TEJPAL & ORS.",
+        "court": "Supreme Court of India",
+        "citation": "[2024] 5 S.C.R. 1211",
+        "text": "Case: DELHI DEVELOPMENT AUTHORITY versus TEJPAL & ORS. [[2024] 5 S.C.R. 1211] (2024)\nSection: PARAGRAPH\n\n[SECTION] ## Delhi Development Authority v. Tejpal & Ors.\n\nbefore the High Court, which passed certain observations stating that it is a fit case for the State to file an appeal. Consequently, the State filed an appeal and sought condonation of delay. While the High Court allowed it, this Court held that the condonation of delay was improper. The Court held:\n\n“6. At the outset, it is urged by learned counsel for the appellants that the High Court erred in condoning the delay in filing the appeal, and the appeal should have been dismissed as barred by limitation. We have examined the facts carefully. It appears that initially the State Government took a decision not to file an appeal and it allowed the period of limitation to lapse. Subsequently,on certain observations made by the High Court while considering a revision petition by Bhulabhai that it was a fit case where the State Government should file an appeal and on notice being issued by the High Court to the State Government in the matter,the appeal was filed. It was filed three months after limitation had expired. A faint attempt was made to show that when the initial decision was taken not to file an appeal all the papers had not been considered by the department concerned, but we are not impressed by that allegation. The truth appears to be that the appeal was not filed at first because the State Government saw no case on the merits for an appeal, and it was filed only because the High Court had observed — and that was long after limitation had expired — that the case was fit for appeal by the State Government. Now, it is true that a party is entitled to wait until the last day of limitation for filing an appeal. But when it allows limitation to expire and pleads sufficient cause for not filing the appeal earlier, the sufficient cause must establish that because of some event or circumstance arising before limitation expired it was not possible to file the appeal within time. No event or circumstance arising after the expiry of limitation can constitute such sufficient cause. There may be events or circumstances subsequent to the expiryof limitation which may further delay the filing of the\n\n[SECTION] ## Digital Supreme Court Reports\n\nappeal. But that the limitation has been allowed to expire without the appeal being filed must be traced to a cause arising within the period of limitation. In the present case, there was no such cause, and the High Court erred in condoning the delay.”\n\n[emphasis supplied]\n\n25. Similarly, in most of these cases, the prescribed period of limitation had already expired long before the judgments in Shailendra(supra)and Manoharlal (supra) were delivered. The appellants let the limitation period lapse, perhaps because they saw no case on merits for appeal. When the law was subsequently re-interpreted in the afore-cited two cases, the appellants approached this Court with the present appeals, petitions, and applications. Instead of showing a sufficient cause arising within the period of limitation, they are using an event after the expiry of such period to justify the delay. This does not square with our understanding of the law, and cannot be allowed.",
+        "kind": "precedent"
+      },
+      {
+        "id": "2014_INSC_60_001",
+        "title": "SANJAY KUMAR versus THE STATE OF BIHAR & ANR.",
+        "court": "Supreme Court of India",
+        "citation": "[2014] 1 S.C.R. 848",
+        "text": "Case: SANJAY KUMAR versus THE STATE OF BIHAR & ANR. [[2014] 1 S.C.R. 848] (2014)\nSection: SECTION\n\nB. Learned Magistrate, Danapur vide an order dated D 12.5.2008 summoned the private respondent for appearance on 12.6.2008, being prima facie of the view that a case under Sections 406, 420 IPC and under Section 138 of NI Act was made out by the petitioner. The private respondent challenged the said order by filing the petition before the High Court which E has been allowed vide impugned judgment and order on various grounds, inter-alia that there was an agreement between the parties for service for one year and one of the conditions in the agreement was that the petitioner would not resign from the institute till the completion of 3 years. More so, the petitioner\n\nF did not even give sufficient time to the accused to respond to the legal notice as he filed the complaint within the close _ proximity of the date of the notice. The High Court also concluded that there was nothing on record to show that the notice had ever been served upon the private respondent and G ultimately allowed the said petition on the ground that it was a case of civil nature as it was a matter of recovery of salary.\n\nC. Aggrieved, the petitioner approached this Court making\n\nthe averrnent in the petition that accused persons had been running a fake institution and offered the appointment to the H\n\n[TITLE] # SANJAY KUMAR v. STATE OF BIHAR 851\n\npetitioner on certain terms and in spite of working therein, he was not paid the salary.\n\nHence, this petition.\n\n3. In the instant case the counsel appearing in the court for the petitioner designated himself merely as a proxy counsel. The Advocate-on-record (for short 'AOR') had no courtesy to send, at least, a slip mentioning the name of the counsel who has to appear in the court. Thus, in such a fact-situation, we had no advantage even to know the name of the counsel who was appearing in the court.\n\n4. Earlier, this Court had issued notice to the petitioner himself to show cause that in case it was a fake institution, what was the reason or rationale for the petitioner to join the same and to continue to serve there for one year. In reply to the said show cause notice, the petitioner submitted that such pleadings be ignored and may not be taken into account for the purpose of disposal of the instant petition. We do not see any reason to allow a party to make a pleading in the petition and then make a submission to the court to ignore it as such an issue has no bearing on the merits of the case being totally irrelevant. Pleadings have to be true to the knowledge of the parties and in case a person takes such misleading pleadings, he can be refused not only any kind of indulgence by the court but can also be tried for perjury. In case, the pleading taken by the petitioner is true, he cannot ask for ignoring the same. In case, it is false and as such statement had been made on oath, he is liable to be tried for perjury. More so, whether such a pleading is relevant or not is a matter to be decided by the court and under Section 165 of the Indian Evidence Act, 1872, court has a right to ask the party even relevant or irrelevant questions and the parties or their counsel cannot raise any objection to any such question.\n\n5. In such a fact-situation, words fail us to condemn the audacity of the petitioner to tell the highest court of the land to ignore the pleadings taken by him.\n\nA\n\nB\n\nC\n\n0\n\nE\n\nF\n\nG\n\nH\n\n[SECTION] ## [2014] 1 S.C.R.",
+        "kind": "precedent"
+      },
+      {
+        "id": "2024_INSC_155_000",
+        "title": "M/S ARIF AZIM CO. LTD. versus M/S APTECH LTD.",
+        "court": "Supreme Court of India",
+        "citation": "[2024] 3 S.C.R. 73",
+        "text": "Case: M/S ARIF AZIM CO. LTD. versus M/S APTECH LTD. [[2024] 3 S.C.R. 73] (2024)\nSection: ISSUES\n\n[2024] 3 S.C.R. 73 : 2024 INSC 155\n\n[TITLE] # M/S Arif Azim Co. Ltd.\n\n[TITLE] # v. M/S Aptech Ltd.\n\n(Arbitration Petition No. 29 of 2023)\n\n[SECTION] ## 01 March 2024\n\n[TITLE] # [Dr. Dhananjaya Y. Chandrachud, CJI,  J.B. Pardiwala*  and Manoj Misra, JJ.]\n\n[SECTION] ## Issue for Consideration\n\nWhether the Limitation Act, 1963 is applicable to an application for appointment of arbitrator u/s.11(6), Arbitration and Conciliation Act, 1996; if yes, whether the present petition is barred by limitation; when does the right to apply u/s.11(6) accrues; whether the court may refuse to make a reference u/s.11 of the Arbitration and Conciliation Act, 1996 where the claims are ex-facie and hopelessly time-barred.\n\n[SECTION] ## Headnotes\n\nArbitration and Conciliation Act, 1996 – s.11(6) – Limitation Act, 1963 – Article 137 – Applicability – Three franchise agreements entered into between parties in 2013 – As per the agreements, the petitioner-a company based in Afghanistan, as the franchisee, was granted a non-exclusive license, by the respondent to establish and operate businesses under three trade names – Proposals were invited by the Indian Council for Cultural Relations (ICCR), for the execution of a short-term course – Proposal of the respondent accepted – Course executed by the petitioner at its centre in Kabul from February to April, 2017 – Disputes arose between the parties in relation to the renewal and payment of royalties for all the three franchise agreements – Respondent issued recovery notice for non-payment of royalty/renewal fees in 2018 – Petitioner informed the respondent of its decision to not renew two franchise agreements – In 2021, after a gap of around three years, the petitioner again took up the issue of non-payment of dues for the ICCR project with the respondent – Petitioner invoked a pre-institution mediation in 2022 however, upon failure thereof, it sent notice for invocation of arbitration to the respondent – Respondent replied denying the claims\n\n[SECTION] ## Digital Supreme Court Reports\n\n[SECTION] ## stating that notwithstanding the merits, the claims were barred by limitation – Petitioner filed petition u/s.11(6) filed for the appointment of an arbitrator:\n\nHeld: There is no doubt as to the applicability of the Limitation Act, 1963 to arbitration proceedings in general and that of Article 137 of the Limitation Act, 1963 to a petition u/s.11(6) in particular – As is evident from Article 137, the limitation period for making an application u/s.11(6) is three years from the date when the right to apply accrues – Limitation period for filing an application seeking appointment of arbitrator commences only after a valid notice invoking arbitration has been issued by one of the parties to the other party and there has been either a failure or refusal on part of the other party to make an appointment as per the appointment procedure agreed upon between the parties – The request for appointment of an arbitrator was first made by the petitioner vide notice dtd. 24.11.2022 and a time of one month from the date of receipt of notice was given to the respondent to comply with the said notice – Notice was delivered to the respondent on 29.11.2022 – Hence, the said period of one month from the date of receipt came to an end on 28.12.2022 – Thus, it is only from this day that the clock of limitation for filing the present petition would start to tick – The present petition was filed by the petitioner on 19.04.2023, well within the time period of 3 years provided by Article 137 – Thus, the present petition u/s.11(6) cannot be said to be barred by limitation – Further, the notice invoking arbitration was received by the respondent on 29.11.2022, which is within the three-year period from the date on which the cause of action for the claim had arisen – Thus, it cannot be said that the claims sought to be raised by the petitioner are ex-facie time-barred or dead claims on the date of the commencement of arbitration – Petition allowed, sole arbitrator appointed.[Paras 50-52, 62, 88, 92]",
+        "kind": "precedent"
+      }
+    ],
+    "trace": [
+      {
+        "id": 1,
+        "tool": "check_deadlines",
+        "summary": "Calculated base periods from confirmed input dates",
+        "status": "complete",
+        "result": {
+          "as_of": "2026-10-17",
+          "checks": [
+            {
+              "id": "presentation",
+              "title": "Cheque validity",
+              "status": "checked",
+              "detail": "Presentation is within the supplied validity date.",
+              "source_id": "IND_central_2189_s138_p0"
+            },
+            {
+              "id": "notice",
+              "title": "Written demand notice",
+              "status": "checked",
+              "detail": "The supplied notice date is within 30 days of receiving bank information; confirm the notice and dispatch evidence.",
+              "source_id": "IND_central_2189_s138_p0"
+            },
+            {
+              "id": "payment",
+              "title": "Payment and notice service",
+              "status": "checked",
+              "detail": "The base payment period has expired; confirm non-payment and legally effective notice service.",
+              "source_id": "IND_central_2189_s138_p1"
+            },
+            {
+              "id": "filing",
+              "title": "Complaint filing",
+              "status": "missing",
+              "detail": "Confirm the filing date. The base one-calendar-month period is not a fixed 30 days; court closures, service disputes and condonation require review.",
+              "source_id": "IND_central_2189_s142_p0"
+            },
+            {
+              "id": "debt",
+              "title": "Legally enforceable liability",
+              "status": "checked",
+              "detail": "Supporting records are reported, not independently authenticated. Preserve the agreement, invoices, ledger and payment history.",
+              "source_id": "IND_central_2189_s138_p1"
+            }
+          ],
+          "deadlines": [
+            {
+              "id": "notice",
+              "title": "Base notice deadline",
+              "date": "2026-10-03",
+              "days_remaining": -14,
+              "source_id": "IND_central_2189_s138_p0"
+            },
+            {
+              "id": "payment",
+              "title": "Base payment-period end",
+              "date": "2026-10-15",
+              "days_remaining": -2,
+              "source_id": "IND_central_2189_s138_p1"
+            },
+            {
+              "id": "filing",
+              "title": "Base complaint deadline",
+              "date": "2026-11-16",
+              "days_remaining": 30,
+              "source_id": "IND_central_2189_s142_p0"
+            }
+          ],
+          "checked": 4,
+          "attention": 0,
+          "missing": 1,
+          "caution": "Base calendar calculations from supplied dates, not legal clearance. Excludes court holidays, disputed service, special extensions and judicial condonation."
+        }
+      },
+      {
+        "id": 2,
+        "tool": "read_authority",
+        "summary": "Loaded Section 138 and Section 142 statutory text",
+        "status": "complete",
+        "source_ids": [
+          "IND_central_2189_s138_p0",
+          "IND_central_2189_s138_p1",
+          "IND_central_2189_s142_p0"
+        ]
+      },
+      {
+        "id": 3,
+        "tool": "search_precedents",
+        "summary": "Section 138 stop payment security cheque quality of goods legally enforceable debt adverse authorities",
+        "status": "complete",
+        "source_ids": [
+          "2021_INSC_823_010",
+          "2020_INSC_195_000",
+          "2020_INSC_195_001",
+          "2003_INSC_658_006"
+        ]
+      },
+      {
+        "id": 4,
+        "tool": "search_precedents",
+        "summary": "Turn research: Defence counsel",
+        "status": "complete",
+        "branch": 1,
+        "source_ids": [
+          "2025_INSC_427_003",
+          "2020_INSC_195_000",
+          "2020_INSC_195_001",
+          "2020_INSC_195_007"
+        ]
+      },
+      {
+        "id": 5,
+        "tool": "search_precedents",
+        "summary": "Turn research: Complainant counsel",
+        "status": "complete",
+        "branch": 1,
+        "source_ids": [
+          "2025_INSC_427_003",
+          "2020_INSC_195_000",
+          "2020_INSC_195_001",
+          "2020_INSC_195_007"
+        ]
+      },
+      {
+        "id": 6,
+        "tool": "search_precedents",
+        "summary": "Turn research: Magistrate",
+        "status": "complete",
+        "branch": 1,
+        "source_ids": [
+          "2025_INSC_427_003",
+          "2020_INSC_195_000",
+          "2020_INSC_195_001",
+          "2020_INSC_195_007"
+        ]
+      },
+      {
+        "id": 7,
+        "tool": "search_precedents",
+        "summary": "Turn research: Defence counsel",
+        "status": "complete",
+        "branch": 2,
+        "source_ids": [
+          "DLHC010410452011_002",
+          "2012_INSC_175_003",
+          "DLHC011742012012_004",
+          "2021_INSC_823_010"
+        ]
+      },
+      {
+        "id": 8,
+        "tool": "search_precedents",
+        "summary": "Turn research: Complainant counsel",
+        "status": "complete",
+        "branch": 2,
+        "source_ids": [
+          "DLHC010410452011_002",
+          "2012_INSC_175_003",
+          "DLHC011742012012_004",
+          "2021_INSC_823_010"
+        ]
+      },
+      {
+        "id": 9,
+        "tool": "search_precedents",
+        "summary": "Turn research: Magistrate",
+        "status": "complete",
+        "branch": 2,
+        "source_ids": [
+          "DLHC010410452011_002",
+          "2012_INSC_175_003",
+          "DLHC011742012012_004",
+          "2021_INSC_823_010"
+        ]
+      },
+      {
+        "id": 10,
+        "tool": "search_precedents",
+        "summary": "Turn research: Defence counsel",
+        "status": "complete",
+        "branch": 3,
+        "source_ids": [
+          "2022_INSC_800_016",
+          "2024_INSC_640_012",
+          "2024_INSC_456_027",
+          "2014_INSC_60_001"
+        ]
+      },
+      {
+        "id": 11,
+        "tool": "search_precedents",
+        "summary": "Turn research: Complainant counsel",
+        "status": "complete",
+        "branch": 3,
+        "source_ids": [
+          "2022_INSC_800_016",
+          "2024_INSC_640_012",
+          "2024_INSC_456_027",
+          "2014_INSC_60_001"
+        ]
+      },
+      {
+        "id": 12,
+        "tool": "search_precedents",
+        "summary": "Turn research: Magistrate",
+        "status": "complete",
+        "branch": 3,
+        "source_ids": [
+          "2022_INSC_800_016",
+          "2024_INSC_640_012",
+          "2024_INSC_456_027",
+          "2024_INSC_155_000"
+        ]
+      }
+    ],
+    "branches": [
+      {
+        "id": 1,
+        "title": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+        "question": "Can we cleanly prove a legally enforceable invoice debt, timely notice, and that the drawer’s security-cheque story is unsupported by the documents already available?",
+        "assumptions": [
+          "Cheque was presented within validity; bank memo and dispatch records will match the supplied dates.",
+          "The supply agreement, invoices, delivery acknowledgements, ledger and any part-payments show a live liability on the cheque date.",
+          "Notice was sent within 30 days of bank intimation and was effectively served; payment was not made within 15 days.",
+          "The customer has no documented quality rejection, debit note, return, or written complaint tied to the goods supplied."
+        ],
+        "evidence_needed": [
+          "Original cheque, bank return memo, and bank-preserved presentation/return records.",
+          "Notice copy, courier/AD/e-delivery proof, and envelope tracking showing service or deemed service.",
+          "Agreement, invoices, delivery proof, ledger, and reconciliation of the outstanding balance.",
+          "Any prior emails/WhatsApp/messages on quality, rejection, or settlement to test the defence."
+        ],
+        "status": "completed",
+        "turns": [
+          {
+            "id": 1,
+            "agent_id": 3,
+            "platform": "court",
+            "kind": "say",
+            "round": 1,
+            "text": "The documents you’ve described can support a Section 138 complaint if the cheque was within validity, notice went out in time, and service plus non-payment are shown. But the “security cheque” and quality-dispute story is still only contested on this record unless you have no complaint, return memo, or written rejection from the drawer.",
+            "role": "Respondent Defense Counsel",
+            "what_to_say": "Respondent’s security-cheque plea is not enough by itself; if the cheque, bank memo, notice, and delivery records align, the complainant can rely on the statutory presumption of legally enforceable debt, while the drawer must bring some material rebuttal. The missing filing date still needs confirmation for cognizance, and the quality objection remains unproven unless backed by documents.",
+            "why_it_matters": "This keeps the route complainant-focused but neutral: it shows what is already supported, what remains contested, and what documentary proof is still missing before the complaint can be said to be cleanly maintainable.",
+            "assessment": "needs_evidence",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+              "turn": 1,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "defense"
+            }
+          },
+          {
+            "id": 2,
+            "agent_id": 2,
+            "platform": "court",
+            "kind": "say",
+            "round": 1,
+            "text": "If the bank memo, delivery acknowledgements, and notice-service records match the dates you’ve given, the complainant can show the presentation and notice steps, and the stop-payment defence does not by itself answer liability. But the filing date is still missing, and the “security cheque” and quality-dispute claims remain contested unless you produce written rejection, debit note, or other documents showing no enforceable balance.",
+            "role": "Complainant Counsel",
+            "what_to_say": "The documentary trail can support the statutory steps if the dates line up, but the complaint date still needs confirmation. On the present record, the security-cheque and quality objections are not proved; they remain matters for the drawer to substantiate with documents.",
+            "why_it_matters": "This separates what is already supported from what is still missing, so the complaint can be assessed on evidence rather than on bare assertions.",
+            "assessment": "needs_evidence",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+              "turn": 2,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "petitioner"
+            }
+          },
+          {
+            "id": 3,
+            "agent_id": 1,
+            "platform": "court",
+            "kind": "say",
+            "round": 1,
+            "text": "On this record, the cheque-validity and notice-timing steps are supported if the bank and dispatch records match the dates you supplied. The security-cheque and quality-dispute story is still contested, because the documents described do not yet show any written rejection, debit note, or other rebuttal from the drawer. The filing date remains missing, so cognizance under the complaint-timing rule still needs confirmation.",
+            "role": "Presiding Magistrate",
+            "what_to_say": "The complainant can presently rely on the statutory presentation, notice, and non-payment sequence, but the filing date must still be verified. The drawer’s security-cheque and quality objections remain unproven unless backed by documents.",
+            "why_it_matters": "This separates what is already supported from what is still missing, so the complaint can be tested on documentary proof rather than bare denial.",
+            "assessment": "needs_evidence",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+              "turn": 3,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "bench"
+            }
+          }
+        ],
+        "assessment": "needs_evidence"
+      },
+      {
+        "id": 2,
+        "title": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+        "question": "Do the original bank and dispatch records create a real risk that one or more Section 138 steps fail, or that the cheque was only an advance/security cheque without an existing liability?",
+        "assumptions": [
+          "The defence can produce credible records showing the cheque was issued only as security or as an advance, and the debt was disputed before dishonour.",
+          "The complaint date is still unconfirmed, so the one-month filing rule under Section 142 cannot yet be treated as satisfied.",
+          "The notice-service chain is not yet documentary-checked, so service date and the 15-day payment window remain open issues.",
+          "If the goods were genuinely rejected or the contract was not completed, the cheque may not map to a legally enforceable debt on the cheque date."
+        ],
+        "evidence_needed": [
+          "Complaint filing date with court receipt to test Section 142 timing.",
+          "Original bank memo and statement entries to confirm the reason for dishonour and dates.",
+          "Purchase order, security-cheque clause if any, correspondence on quality complaints, rejection, or cancellation.",
+          "Books showing whether the invoiced sum was admitted, adjusted, or still outstanding when the cheque was issued."
+        ],
+        "status": "completed",
+        "turns": [
+          {
+            "id": 4,
+            "agent_id": 3,
+            "platform": "court",
+            "kind": "say",
+            "round": 2,
+            "text": "The present record does show a live maintainability risk: Section 138 needs a legally enforceable debt, timely notice, and payment default after service, and the complaint filing date is still unconfirmed. If the defence can document that this was only a security or advance cheque, and that the goods were rejected or the debt was disputed before dishonour, that would materially contest the Section 138 foundation.",
+            "role": "Respondent Defense Counsel",
+            "what_to_say": "On the supplied materials, presentation looks timely, but filing, notice service, and the existence of an enforceable liability are still not fully proved. If the original bank memo, dispatch proof, and commercial records show a security/advance arrangement or a pre-existing goods dispute, the complainant’s Section 138 case is genuinely contestable.",
+            "why_it_matters": "This determines whether the cheque was issued for a legally enforceable debt and whether the statutory steps under Sections 138 and 142 were completed on time. Without documentary proof of service and filing, plus proof that liability existed on the cheque date, maintainability remains open.",
+            "assessment": "contested",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "**138. Dishonour of cheque for insufficiency, etc., of funds in the account.—** Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is return",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+              "turn": 1,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "defense"
+            }
+          },
+          {
+            "id": 5,
+            "agent_id": 2,
+            "platform": "court",
+            "kind": "say",
+            "round": 2,
+            "text": "Yes, there is a real maintainability risk if the original bank memo or dispatch trail does not line up with the supplied dates, because Section 138 depends on valid presentation, notice, and a 15-day non-payment period after service. On liability, a cheque said to be only a security or advance cheque can be contested if the defence can show the debt had not yet become legally enforceable, especially where there was a prior goods dispute. But on the current record, that point is still contested rather than disproved.",
+            "role": "Complainant Counsel",
+            "what_to_say": "The complaint is not fully secure on the present papers: filing date and notice service still need documentary proof, and the bank/contract records must show that an enforceable debt existed when the cheque was issued. If the defence proves a security-only or advance arrangement, or a pre-dishonour goods dispute, that directly weakens the Section 138 foundation.",
+            "why_it_matters": "This decides whether the statutory steps were completed on time and whether the cheque was issued against a legally enforceable liability, not merely as a contingent or security instrument.",
+            "assessment": "contested",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "**138. Dishonour of cheque for insufficiency, etc., of funds in the account.—** Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is return",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+              "turn": 2,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "petitioner"
+            }
+          },
+          {
+            "id": 6,
+            "agent_id": 1,
+            "platform": "court",
+            "kind": "say",
+            "round": 2,
+            "text": "On this record, the maintainability objections are real but not yet conclusive: presentation appears timely, yet the filing date and the notice-service chain still need documentary proof. The security-cheque defence is also still open, because the law turns on whether there was a legally enforceable debt when the cheque was drawn and whether the defence can rebut the presumption with records.",
+            "role": "Presiding Magistrate",
+            "what_to_say": "The complaint is presently contestable on two documentary gaps: filing under Section 142 and effective notice service. Liability is also still disputed, because a cheque described as security or advance can fail if the defence shows no enforceable debt existed on the cheque date.",
+            "why_it_matters": "These points determine whether the statutory clock was met and whether the cheque was issued for an existing legal liability, which are both central to Section 138 maintainability.",
+            "assessment": "contested",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "**138. Dishonour of cheque for insufficiency, etc., of funds in the account.—** Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is return",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+              "turn": 3,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "bench"
+            }
+          }
+        ],
+        "assessment": "contested"
+      },
+      {
+        "id": 3,
+        "title": "Settlement or evidence-gathering path: lock the record first, then decide",
+        "question": "Should we first close the date gaps and test settlement using the bank, service, and account records before filing or pressing hard on merits?",
+        "assumptions": [
+          "The key missing item is the complaint filing date, and the notice-service evidence still needs documentary confirmation.",
+          "The debt records are available but not yet independently authenticated, so a quick file audit may change the litigation posture.",
+          "A prompt payment plan or partial settlement may be preferable if the cheque amount, interest, and goods-quality dispute can be narrowed by documents.",
+          "If the records show a service defect or a filing delay, preservation and corrective legal steps matter more than an aggressive merits-only brief."
+        ],
+        "evidence_needed": [
+          "Bank presentation slip, return memo, and account statement.",
+          "Notice, dispatch proof, delivery proof, and any reply notice from the customer.",
+          "Ledger, outstanding-balance working, and any credit notes or quality-response emails.",
+          "Complaint draft with the missing filing date inserted once verified, plus a short settlement note if talks are opened."
+        ],
+        "status": "completed",
+        "turns": [
+          {
+            "id": 7,
+            "agent_id": 3,
+            "platform": "court",
+            "kind": "say",
+            "round": 3,
+            "text": "We should first lock the record on service, bank return, and filing date before pressing merits. On the present material, presentation and notice timing are broadly supported, but the complaint date and effective service proof are still missing, so that gap matters before any hard step. If the documents confirm a valid debt and no payment, a settlement note or narrowed payment plan can be considered; if not, the posture should be corrected first.",
+            "role": "Respondent Defense Counsel",
+            "what_to_say": "The cheque presentation and notice timing appear broadly within the statutory windows, but the complaint filing date and documentary proof of service are still unconfirmed. On this record, it is sensible to audit the bank, dispatch, and ledger papers first, because those documents may change whether we press merits or open settlement talks.",
+            "why_it_matters": "Section 138 requires timely presentation, written notice within 30 days, and non-payment after notice, while Section 142 requires a complaint within one month of cause of action. If the service or filing record is defective, fixing the record early is more important than arguing the cheque dispute on merits.",
+            "assessment": "needs_evidence",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Settlement or evidence-gathering path: lock the record first, then decide",
+              "turn": 1,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "defense"
+            }
+          },
+          {
+            "id": 8,
+            "agent_id": 2,
+            "platform": "court",
+            "kind": "say",
+            "round": 3,
+            "text": "Yes—on this record, it is prudent to first close the bank, dispatch, and filing-date gaps before pushing merits. The presentation and notice-timing requirements appear broadly supported, but effective notice service and the complaint filing date are still not independently confirmed. If those papers check out, settlement or a narrowed payment plan can be explored alongside the debt documents; if not, the record should be corrected first.",
+            "role": "Complainant Counsel",
+            "what_to_say": "The cheque timing is broadly supported, but the service proof and complaint filing date still need documentary confirmation. A quick audit of the bank return, dispatch/delivery records, and ledger would help decide whether to negotiate a payment plan or proceed on a cleaner record.",
+            "why_it_matters": "Section 138 turns on timely presentation, written notice, and non-payment after notice, while Section 142 requires the complaint to be filed within one month of cause of action. If service or filing is defective, the filing posture may need correction before merits are pressed.",
+            "assessment": "needs_evidence",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Settlement or evidence-gathering path: lock the record first, then decide",
+              "turn": 2,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "petitioner"
+            }
+          },
+          {
+            "id": 9,
+            "agent_id": 1,
+            "platform": "court",
+            "kind": "say",
+            "round": 3,
+            "text": "At this stage, the record is enough to say the cheque-timing and notice-window points look broadly supported, but the complaint filing date and legally effective service proof are still missing. If you want to press forward or settle, first close those document gaps with the bank return, dispatch/delivery proof, and ledger so the posture is clean.",
+            "role": "Presiding Magistrate",
+            "what_to_say": "The timeline on presentation and written notice appears broadly supported, but the complaint filing date and effective service still need documentary confirmation. Before pressing merits, I would first lock the bank, dispatch, and account records, because those papers may change whether the matter is best pursued or narrowed for settlement.",
+            "why_it_matters": "Section 138 turns on timely presentation, written notice, and non-payment after notice, while Section 142 requires a complaint within one month of cause of action. If service or filing is defective, the record should be corrected early rather than argued around on an incomplete file.",
+            "assessment": "needs_evidence",
+            "guardrails": [],
+            "citations": [
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p0",
+                "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              },
+              {
+                "source_id": "IND_central_2189_s138_p1",
+                "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+                "matched": true,
+                "note": "Quotation matches supplied source text; legal interpretation is not verified."
+              }
+            ],
+            "data": {
+              "stage": "Settlement or evidence-gathering path: lock the record first, then decide",
+              "turn": 3,
+              "members": [
+                1,
+                2,
+                3
+              ],
+              "seat": "bench"
+            }
+          }
+        ],
+        "assessment": "needs_evidence"
+      }
+    ],
+    "actions": [
+      {
+        "id": 1,
+        "agent_id": 3,
+        "platform": "court",
+        "kind": "say",
+        "round": 1,
+        "text": "The documents you’ve described can support a Section 138 complaint if the cheque was within validity, notice went out in time, and service plus non-payment are shown. But the “security cheque” and quality-dispute story is still only contested on this record unless you have no complaint, return memo, or written rejection from the drawer.",
+        "role": "Respondent Defense Counsel",
+        "what_to_say": "Respondent’s security-cheque plea is not enough by itself; if the cheque, bank memo, notice, and delivery records align, the complainant can rely on the statutory presumption of legally enforceable debt, while the drawer must bring some material rebuttal. The missing filing date still needs confirmation for cognizance, and the quality objection remains unproven unless backed by documents.",
+        "why_it_matters": "This keeps the route complainant-focused but neutral: it shows what is already supported, what remains contested, and what documentary proof is still missing before the complaint can be said to be cleanly maintainable.",
+        "assessment": "needs_evidence",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+          "turn": 1,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "defense"
+        }
+      },
+      {
+        "id": 2,
+        "agent_id": 2,
+        "platform": "court",
+        "kind": "say",
+        "round": 1,
+        "text": "If the bank memo, delivery acknowledgements, and notice-service records match the dates you’ve given, the complainant can show the presentation and notice steps, and the stop-payment defence does not by itself answer liability. But the filing date is still missing, and the “security cheque” and quality-dispute claims remain contested unless you produce written rejection, debit note, or other documents showing no enforceable balance.",
+        "role": "Complainant Counsel",
+        "what_to_say": "The documentary trail can support the statutory steps if the dates line up, but the complaint date still needs confirmation. On the present record, the security-cheque and quality objections are not proved; they remain matters for the drawer to substantiate with documents.",
+        "why_it_matters": "This separates what is already supported from what is still missing, so the complaint can be assessed on evidence rather than on bare assertions.",
+        "assessment": "needs_evidence",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+          "turn": 2,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "petitioner"
+        }
+      },
+      {
+        "id": 3,
+        "agent_id": 1,
+        "platform": "court",
+        "kind": "say",
+        "round": 1,
+        "text": "On this record, the cheque-validity and notice-timing steps are supported if the bank and dispatch records match the dates you supplied. The security-cheque and quality-dispute story is still contested, because the documents described do not yet show any written rejection, debit note, or other rebuttal from the drawer. The filing date remains missing, so cognizance under the complaint-timing rule still needs confirmation.",
+        "role": "Presiding Magistrate",
+        "what_to_say": "The complainant can presently rely on the statutory presentation, notice, and non-payment sequence, but the filing date must still be verified. The drawer’s security-cheque and quality objections remain unproven unless backed by documents.",
+        "why_it_matters": "This separates what is already supported from what is still missing, so the complaint can be tested on documentary proof rather than bare denial.",
+        "assessment": "needs_evidence",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+          "turn": 3,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "bench"
+        }
+      },
+      {
+        "id": 4,
+        "agent_id": 3,
+        "platform": "court",
+        "kind": "say",
+        "round": 2,
+        "text": "The present record does show a live maintainability risk: Section 138 needs a legally enforceable debt, timely notice, and payment default after service, and the complaint filing date is still unconfirmed. If the defence can document that this was only a security or advance cheque, and that the goods were rejected or the debt was disputed before dishonour, that would materially contest the Section 138 foundation.",
+        "role": "Respondent Defense Counsel",
+        "what_to_say": "On the supplied materials, presentation looks timely, but filing, notice service, and the existence of an enforceable liability are still not fully proved. If the original bank memo, dispatch proof, and commercial records show a security/advance arrangement or a pre-existing goods dispute, the complainant’s Section 138 case is genuinely contestable.",
+        "why_it_matters": "This determines whether the cheque was issued for a legally enforceable debt and whether the statutory steps under Sections 138 and 142 were completed on time. Without documentary proof of service and filing, plus proof that liability existed on the cheque date, maintainability remains open.",
+        "assessment": "contested",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "**138. Dishonour of cheque for insufficiency, etc., of funds in the account.—** Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is return",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+          "turn": 1,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "defense"
+        }
+      },
+      {
+        "id": 5,
+        "agent_id": 2,
+        "platform": "court",
+        "kind": "say",
+        "round": 2,
+        "text": "Yes, there is a real maintainability risk if the original bank memo or dispatch trail does not line up with the supplied dates, because Section 138 depends on valid presentation, notice, and a 15-day non-payment period after service. On liability, a cheque said to be only a security or advance cheque can be contested if the defence can show the debt had not yet become legally enforceable, especially where there was a prior goods dispute. But on the current record, that point is still contested rather than disproved.",
+        "role": "Complainant Counsel",
+        "what_to_say": "The complaint is not fully secure on the present papers: filing date and notice service still need documentary proof, and the bank/contract records must show that an enforceable debt existed when the cheque was issued. If the defence proves a security-only or advance arrangement, or a pre-dishonour goods dispute, that directly weakens the Section 138 foundation.",
+        "why_it_matters": "This decides whether the statutory steps were completed on time and whether the cheque was issued against a legally enforceable liability, not merely as a contingent or security instrument.",
+        "assessment": "contested",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "**138. Dishonour of cheque for insufficiency, etc., of funds in the account.—** Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is return",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+          "turn": 2,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "petitioner"
+        }
+      },
+      {
+        "id": 6,
+        "agent_id": 1,
+        "platform": "court",
+        "kind": "say",
+        "round": 2,
+        "text": "On this record, the maintainability objections are real but not yet conclusive: presentation appears timely, yet the filing date and the notice-service chain still need documentary proof. The security-cheque defence is also still open, because the law turns on whether there was a legally enforceable debt when the cheque was drawn and whether the defence can rebut the presumption with records.",
+        "role": "Presiding Magistrate",
+        "what_to_say": "The complaint is presently contestable on two documentary gaps: filing under Section 142 and effective notice service. Liability is also still disputed, because a cheque described as security or advance can fail if the defence shows no enforceable debt existed on the cheque date.",
+        "why_it_matters": "These points determine whether the statutory clock was met and whether the cheque was issued for an existing legal liability, which are both central to Section 138 maintainability.",
+        "assessment": "contested",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "**138. Dishonour of cheque for insufficiency, etc., of funds in the account.—** Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is return",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+          "turn": 3,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "bench"
+        }
+      },
+      {
+        "id": 7,
+        "agent_id": 3,
+        "platform": "court",
+        "kind": "say",
+        "round": 3,
+        "text": "We should first lock the record on service, bank return, and filing date before pressing merits. On the present material, presentation and notice timing are broadly supported, but the complaint date and effective service proof are still missing, so that gap matters before any hard step. If the documents confirm a valid debt and no payment, a settlement note or narrowed payment plan can be considered; if not, the posture should be corrected first.",
+        "role": "Respondent Defense Counsel",
+        "what_to_say": "The cheque presentation and notice timing appear broadly within the statutory windows, but the complaint filing date and documentary proof of service are still unconfirmed. On this record, it is sensible to audit the bank, dispatch, and ledger papers first, because those documents may change whether we press merits or open settlement talks.",
+        "why_it_matters": "Section 138 requires timely presentation, written notice within 30 days, and non-payment after notice, while Section 142 requires a complaint within one month of cause of action. If the service or filing record is defective, fixing the record early is more important than arguing the cheque dispute on merits.",
+        "assessment": "needs_evidence",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Settlement or evidence-gathering path: lock the record first, then decide",
+          "turn": 1,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "defense"
+        }
+      },
+      {
+        "id": 8,
+        "agent_id": 2,
+        "platform": "court",
+        "kind": "say",
+        "round": 3,
+        "text": "Yes—on this record, it is prudent to first close the bank, dispatch, and filing-date gaps before pushing merits. The presentation and notice-timing requirements appear broadly supported, but effective notice service and the complaint filing date are still not independently confirmed. If those papers check out, settlement or a narrowed payment plan can be explored alongside the debt documents; if not, the record should be corrected first.",
+        "role": "Complainant Counsel",
+        "what_to_say": "The cheque timing is broadly supported, but the service proof and complaint filing date still need documentary confirmation. A quick audit of the bank return, dispatch/delivery records, and ledger would help decide whether to negotiate a payment plan or proceed on a cleaner record.",
+        "why_it_matters": "Section 138 turns on timely presentation, written notice, and non-payment after notice, while Section 142 requires the complaint to be filed within one month of cause of action. If service or filing is defective, the filing posture may need correction before merits are pressed.",
+        "assessment": "needs_evidence",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Settlement or evidence-gathering path: lock the record first, then decide",
+          "turn": 2,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "petitioner"
+        }
+      },
+      {
+        "id": 9,
+        "agent_id": 1,
+        "platform": "court",
+        "kind": "say",
+        "round": 3,
+        "text": "At this stage, the record is enough to say the cheque-timing and notice-window points look broadly supported, but the complaint filing date and legally effective service proof are still missing. If you want to press forward or settle, first close those document gaps with the bank return, dispatch/delivery proof, and ledger so the posture is clean.",
+        "role": "Presiding Magistrate",
+        "what_to_say": "The timeline on presentation and written notice appears broadly supported, but the complaint filing date and effective service still need documentary confirmation. Before pressing merits, I would first lock the bank, dispatch, and account records, because those papers may change whether the matter is best pursued or narrowed for settlement.",
+        "why_it_matters": "Section 138 turns on timely presentation, written notice, and non-payment after notice, while Section 142 requires a complaint within one month of cause of action. If service or filing is defective, the record should be corrected early rather than argued around on an incomplete file.",
+        "assessment": "needs_evidence",
+        "guardrails": [],
+        "citations": [
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _a_ ) thecheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p0",
+            "quote": "( _b_ ) the payee or the holder in due course of the cheque, as the case may be, makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 5[within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid;",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          },
+          {
+            "source_id": "IND_central_2189_s138_p1",
+            "quote": "( _c_ ) the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice.",
+            "matched": true,
+            "note": "Quotation matches supplied source text; legal interpretation is not verified."
+          }
+        ],
+        "data": {
+          "stage": "Settlement or evidence-gathering path: lock the record first, then decide",
+          "turn": 3,
+          "members": [
+            1,
+            2,
+            3
+          ],
+          "seat": "bench"
+        }
+      }
+    ],
+    "brief": {
+      "summary": "For the complainant, the best preparation path is to prove the documentary chain: valid presentation, bank return, written demand notice, service, non-payment, and the underlying invoice debt. The main weaknesses in the current record are the missing complaint filing date and the need to independently confirm notice service and the outstanding balance. The drawer’s “security cheque” and quality-dispute points are still only contested on the supplied record; they are not yet backed by matching documents.",
+      "recommended_branch": 1,
+      "recommendation_reason": "Branch 1 is the most useful complainant-focused path because the existing materials already support the core statutory sequence on dates, while the real work now is document authentication and rebutting the security-cheque/quality defence. The record is not clean enough for a pure merits claim yet, but it is strong enough to prepare that argument path first.",
+      "next_steps": [
+        "Collect the original cheque, bank return memo, bank statement entries, and presentation/return records to confirm the dishonour dates.",
+        "Collect the notice copy, dispatch proof, delivery proof, tracking record, and any reply notice to confirm legally effective service.",
+        "Collect the supply agreement, invoices, delivery acknowledgements, ledger, outstanding balance working, and payment history to show a live debt on the cheque date.",
+        "Look for any emails, WhatsApp messages, credit notes, return requests, or written complaints about quality to test the drawer’s defence.",
+        "Ask a qualified advocate to verify the missing complaint filing date against the court receipt and to check whether any court-holiday or service issues affect timing.",
+        "Ask a qualified advocate to confirm whether the evidence is enough to show a legally enforceable liability and to advise how to meet the security-cheque objection."
+      ],
+      "questions_for_lawyer": [
+        "Does the complaint filing date satisfy the one-month filing rule once the actual service dates and court calendar are applied?",
+        "Is the notice service proof strong enough to show receipt or deemed service?",
+        "Does the ledger and invoice trail show an enforceable balance on the cheque date, not just a disputed or future amount?",
+        "What documents would most directly rebut the claim that the cheque was only a security cheque?",
+        "If the quality objection exists, what records are needed to show it was not a valid rejection of the debt?"
+      ],
+      "settlement_option": "If both sides want, a voluntary, lawyer-reviewed settlement or payment plan can be explored after the bank, service, and ledger records are checked. It should be treated as an option, not an outcome.",
+      "limitations": "This is a case-preparation brief, not legal advice or a prediction. The complaint filing date is still missing, notice service needs documentary confirmation, and the supplied dates must be checked against original bank and dispatch records. Unknown facts are left unresolved, and any quoted legal text comes only from the supplied scenario materials."
+    },
+    "error": null,
+    "usage": {
+      "input_tokens": 109599,
+      "output_tokens": 3967
+    },
+    "model_calls": 13,
+    "config": {
+      "platform_mode": "court",
+      "rounds": 3,
+      "agent_count": 3
+    },
+    "groups": [
+      {
+        "tick": 1,
+        "groups": [
+          {
+            "id": 1,
+            "stage": "Complainant-focused route: prove debt, notice, and rebut the security-cheque defence",
+            "members": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "tick": 2,
+        "groups": [
+          {
+            "id": 1,
+            "stage": "Strongest adverse path: attack maintainability on dates and the existence of enforceable liability",
+            "members": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "tick": 3,
+        "groups": [
+          {
+            "id": 1,
+            "stage": "Settlement or evidence-gathering path: lock the record first, then decide",
+            "members": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      }
+    ],
+    "agents": [
+      {
+        "id": 1,
+        "name": "Magistrate",
+        "role": "Presiding Magistrate",
+        "perspective": "Neutral review"
+      },
+      {
+        "id": 2,
+        "name": "Complainant counsel",
+        "role": "Complainant Counsel",
+        "perspective": "Test the complaint"
+      },
+      {
+        "id": 3,
+        "name": "Defence counsel",
+        "role": "Respondent Defense Counsel",
+        "perspective": "Challenge the complaint"
+      }
+    ],
+    "citation_check": {
+      "matched": 27,
+      "total": 27
+    }
+  }
+]

@@ -18,7 +18,7 @@ from openai import APIError, APITimeoutError, AuthenticationError, OpenAI, RateL
 from pydantic import ValidationError
 
 from .casework import CaseFacts, CaseWorkbench, assess_timeline, export_brief, read_authority
-from .core import (Agent, Config, DEFAULT_AGENT_COUNT, DISCLAIMER, MAX_AGENTS, MAX_ROUNDS, Model,
+from .core import (Agent, Config, DEFAULT_AGENT_COUNT, DISCLAIMER, GeminiClient, MAX_AGENTS, MAX_ROUNDS, Model,
                    generate_grounded_report, markdown, prepare_population)
 from .court import court_calls, run_court
 from .engine import Engine
@@ -375,7 +375,22 @@ class Manager:
                     self.active = None
 
 
-def make_server(manager, port=8000):
+def build_model_from_env():
+    timeout = float(os.getenv("MISOFISH_MODEL_TIMEOUT", "180"))
+    gemini_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
+    vertex_project = (os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("VERTEX_PROJECT") or "").strip()
+    if gemini_key:
+        return Model(GeminiClient(api_key=gemini_key, timeout=timeout), os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
+    if vertex_project and os.getenv("USE_VERTEX_AI", "1") != "0":
+        location = os.getenv("VERTEX_LOCATION", "us-central1")
+        return Model(GeminiClient(project=vertex_project, location=location, timeout=timeout),
+                     os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
+    if os.getenv("OPENAI_API_KEY"):
+        return Model(OpenAI(timeout=timeout, max_retries=0), os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    return None
+
+
+def make_server(manager, port=8000, host="127.0.0.1"):
     asset_dir = ROOT / "web" / "assets"
     assets = {"/assets/" + path.name: path for path in asset_dir.iterdir() if path.is_file()} if asset_dir.exists() else {}
     class Handler(BaseHTTPRequestHandler):
@@ -400,15 +415,19 @@ def make_server(manager, port=8000):
             self.wfile.write(content)
 
         def trusted(self, mutation=False):
-            host = self.headers.get("Host", "")
-            allowed = {f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"}
-            if host not in allowed:
+            req_host = self.headers.get("Host", "")
+            loopback = {f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"}
+            extra = {item.strip() for item in os.getenv("ALLOWED_HOSTS", "").split(",") if item.strip()}
+            cloud_host = bool(os.getenv("K_SERVICE")) and req_host.endswith((".run.app", ".web.app", ".firebaseapp.com"))
+            if req_host not in loopback and req_host not in extra and "*" not in extra and not cloud_host:
                 self.reply(403, {"error": "Untrusted Host header."})
                 return False
-            if mutation and (self.headers.get("Origin", f"http://{host}") != f"http://{host}" or
-                             self.headers.get("Sec-Fetch-Site") == "cross-site"):
-                self.reply(403, {"error": "Cross-origin mutation blocked."})
-                return False
+            if mutation:
+                valid_origins = {f"http://{req_host}"} if req_host in loopback else {f"http://{req_host}", f"https://{req_host}"}
+                origin = self.headers.get("Origin", f"http://{req_host}")
+                if origin not in valid_origins or self.headers.get("Sec-Fetch-Site") == "cross-site":
+                    self.reply(403, {"error": "Cross-origin mutation blocked."})
+                    return False
             return True
 
         def stream_events(self, run_id):
@@ -452,16 +471,22 @@ def make_server(manager, port=8000):
                 manager.stream_slots.release()
 
         def do_GET(self):
+            path = urlsplit(self.path).path
+            if path == "/healthz":
+                self.reply(200, {"status": "ok", "service": "legisimate"})
+                return
             if not self.trusted():
                 return
-            path = urlsplit(self.path).path
             try:
                 if path == "/api/config":
+                    provider = getattr(getattr(manager.model, "client", None), "provider",
+                                       "openai" if manager.model is not None else "unconfigured")
                     self.reply(200, {"max_agents": MAX_AGENTS, "max_rounds": MAX_ROUNDS,
                                      "default_agents": DEFAULT_AGENT_COUNT,
                                      "worker": manager.engine.available(), "twitter_available": manager.engine.twitter_available(),
                                      "legal_corpus": legal_status(),
-                                     "model": getattr(manager.model, "name", os.getenv("OPENAI_MODEL", "gpt-4o-mini")),
+                                     "provider": provider,
+                                     "model": getattr(manager.model, "name", os.getenv("GEMINI_MODEL") or os.getenv("OPENAI_MODEL", "gpt-4o-mini")),
                                      "configured": manager.model is not None, "disclaimer": DISCLAIMER})
                 elif path == "/api/runs":
                     self.reply(200, manager.store.list())
@@ -567,12 +592,15 @@ def make_server(manager, port=8000):
             except TimeoutError:
                 self.reply(408, {"error": "Request read timed out."})
 
-    return ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    return ThreadingHTTPServer((host, port), Handler)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Local graph-grounded OASIS simulation (macOS/Linux).")
-    parser.add_argument("--port", type=int, default=8000)
+    default_host = "0.0.0.0" if os.getenv("K_SERVICE") else os.getenv("HOST", "127.0.0.1")
+    default_port = int(os.getenv("PORT", "8000"))
+    parser = argparse.ArgumentParser(description="LegisiMate / Misofish case-preparation and simulation server.")
+    parser.add_argument("--host", default=default_host)
+    parser.add_argument("--port", type=int, default=default_port)
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data")
     args = parser.parse_args()
     args.data_dir.mkdir(parents=True, exist_ok=True)
@@ -584,13 +612,10 @@ def main():
             parser.exit(1, "Another Misofish server already owns this data directory.\n")
         store = Store(args.data_dir / "runs.db")
         store.recover()
-        model = None
-        if os.getenv("OPENAI_API_KEY"):
-            model = Model(OpenAI(timeout=float(os.getenv("MISOFISH_MODEL_TIMEOUT", "180")), max_retries=0),
-                os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+        model = build_model_from_env()
         manager = Manager(store, model)
-        server = make_server(manager, args.port)
-        print(f"Misofish: http://127.0.0.1:{server.server_port} · default {DEFAULT_AGENT_COUNT} personas · deployment ceiling {MAX_AGENTS}", flush=True)
+        server = make_server(manager, args.port, host=args.host)
+        print(f"Misofish: http://{args.host}:{server.server_port} · default {DEFAULT_AGENT_COUNT} personas · deployment ceiling {MAX_AGENTS}", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:

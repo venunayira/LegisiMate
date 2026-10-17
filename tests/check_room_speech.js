@@ -97,6 +97,28 @@ room.wake();advance(16);
 assert.equal(talking().length,1,'Court speakers begin at their fixed seats without a stalled walking phase');
 assert.ok(find(talking()[0],'room-bubble-text').textContent.length>0);
 assert.ok(!drawnLabels.includes('JURY BOX'),'The magistrate workflow does not display a jury box');
+const fullCourt={...court,id:'full-hearing',agents:[...court.agents,
+  {id:4,name:'Cheque recipient',role:'Complainant (Party)'},
+  {id:5,name:'Cheque issuer',role:'Accused (Party)'},
+  {id:6,name:'Complainant witness',role:'Complainant Witness'},
+  {id:7,name:'Defence witness',role:'Defence Witness'},
+  {id:8,name:'Complainant junior',role:'Complainant Junior Counsel'},
+  {id:9,name:'Defence junior',role:'Respondent Defense Junior Counsel'}]};
+room.render(fullCourt,[],courtSpeech,{paused:false,speed:1});room.wake();advance(16);
+const fullLabels=labels.children.slice(-fullCourt.agents.length);
+assert.ok(fullLabels.every(label=>parseFloat(label.style.left)>=label.offsetWidth/2+8&&
+  parseFloat(label.style.left)<=host.clientWidth-label.offsetWidth/2-8),'Courtroom labels stay inside the scene');
+assert.equal(fullLabels[3].style.left,fullLabels[4].style.left,'Both parties have seats in the party dock');
+assert.notEqual(fullLabels[3].style.left,fullLabels[1].style.left,'Parties do not occupy counsel seats');
+assert.notEqual(fullLabels[5].style.left,fullLabels[6].style.left,'Witnesses have distinct stands');
+drawnLabels.length=0;
+room.render({...fullCourt,id:'educational-review',agents:[...fullCourt.agents,
+  ...[1,2,3].map(index=>({id:9+index,name:`Review assessor ${index}`,role:'Educational Review Panel Assessor'}))]},[],null);room.wake();advance(16);
+assert.ok(drawnLabels.includes('REVIEW PANEL'),'Optional assessors are explicitly educational, not an Indian jury');
+assert.ok(!drawnLabels.includes('JURY BOX'),'Educational review never displays a jury box');
+const reviewLabels=labels.children.slice(-3);
+assert.ok(reviewLabels.slice(1).every((label,index)=>parseFloat(label.style.top)-parseFloat(reviewLabels[index].style.top)>=30),
+  'Educational panel labels have separate rows');
 drawnLabels.length=0;
 room.render({...court,id:'legacy-jury',agents:[...court.agents,{id:4,name:'Assessor',role:'Jury Member'}]},[],null);
 room.wake();

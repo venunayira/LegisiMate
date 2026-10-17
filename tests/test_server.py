@@ -442,10 +442,26 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(request("/api/runs/unknown")[0], 404)
             self.assertEqual(request("/api/runs", [], {})[0], 422)
             self.assertEqual(request("/api/runs", {"scenario": "Change"}, {"Content-Type": "text/plain"})[0], 415)
+            self.assertEqual(request("/healthz", headers={"Host": "legisimate-xyz.a.run.app"})[0], 200)
+            with unittest.mock.patch.dict(os.environ, {"K_SERVICE": "legisimate"}, clear=False):
+                self.assertEqual(request("/api/config", headers={"Host": "legisimate-xyz.a.run.app"})[0], 200)
+                self.assertEqual(request("/api/cases/timeline",
+                    {"facts": {}, "as_of": "2026-10-17"},
+                    {"Host": "legisimate-xyz.a.run.app", "Origin": "https://legisimate-xyz.a.run.app"})[0], 200)
         finally:
             server.shutdown()
             server.server_close()
             thread.join(3)
+
+    def test_build_model_from_env_prioritizes_gemini_and_vertex(self):
+        from misofish.server import build_model_from_env
+        with unittest.mock.patch.dict(os.environ, {"GEMINI_API_KEY": "AIzaKey", "GEMINI_MODEL": "gemini-2.5-flash"}, clear=True):
+            m = build_model_from_env()
+            self.assertEqual(m.name, "gemini-2.5-flash")
+            self.assertEqual(m.client.provider, "gemini")
+        with unittest.mock.patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "my-gcp-proj", "VERTEX_LOCATION": "asia-south1"}, clear=True):
+            m2 = build_model_from_env()
+            self.assertEqual(m2.client.provider, "vertex-gemini")
 
 
 if __name__ == "__main__":
