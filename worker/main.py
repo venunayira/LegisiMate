@@ -48,7 +48,7 @@ async def simulate(run, storage):
     model = ModelFactory.create(model_platform=ModelPlatformType.OPENAI_COMPATIBLE_MODEL,
         model_type=run["model"], api_key=os.environ.get("OPENAI_API_KEY"),
         url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        max_retries=0, timeout=float(os.getenv("MISOFISH_MODEL_TIMEOUT", "180")), model_config_dict={"max_completion_tokens": 1800,
+        max_retries=0, timeout=float(os.getenv("LEGISIMATE_MODEL_TIMEOUT", "180")), model_config_dict={"max_completion_tokens": 1800,
             "store": False, **({"reasoning_effort": "none"} if run["model"].startswith("gpt-5") else {})})
     calls = 0
     reserve = 0

@@ -1,9 +1,9 @@
 import random
 import unittest
-from misofish.space import Room
+from legisimate.space import Room
 from test_core import roster
 from test_core import FakeModel
-from misofish.core import Config,run_round
+from legisimate.core import Config,run_round
 
 
 class SpaceTests(unittest.TestCase):

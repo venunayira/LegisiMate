@@ -8,8 +8,8 @@ import urllib.request
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from misofish.core import Config, PopulationBatch
-from misofish.server import Manager, Store, main, make_server
+from legisimate.core import Config, PopulationBatch
+from legisimate.server import Manager, Store, main, make_server
 from test_core import FakeModel, FixtureEngine, roster
 
 
@@ -108,9 +108,9 @@ class ServerTests(unittest.TestCase):
         server = Mock(server_port=8765)
         server.serve_forever.side_effect = KeyboardInterrupt
         with patch.dict(os.environ, {"OPENAI_API_KEY": "local-fixture", "MISOFISH_MODEL_TIMEOUT": "240"}), \
-                patch("sys.argv", ["misofish", "--data-dir", self.tmp.name]), \
-                patch("misofish.server.OpenAI") as client, \
-                patch("misofish.server.make_server", return_value=server):
+                patch("sys.argv", ["legisimate", "--data-dir", self.tmp.name]), \
+                patch("legisimate.server.OpenAI") as client, \
+                patch("legisimate.server.make_server", return_value=server):
             main()
         client.assert_called_once_with(timeout=240.0, max_retries=0)
 
@@ -169,7 +169,7 @@ class ServerTests(unittest.TestCase):
         connection.__exit__ = Mock(return_value=False)
         connection.execute.return_value.fetchone.return_value = ('{"id": "test"}',)
         connection.execute.return_value.fetchall.return_value = []
-        with patch("misofish.server.sqlite3.connect", return_value=connection):
+        with patch("legisimate.server.sqlite3.connect", return_value=connection):
             store = Store(Path(self.tmp.name) / "closed.db")
             store.save({"id": "test"})
             self.assertEqual(store.get("test")["id"], "test")
@@ -346,7 +346,7 @@ class ServerTests(unittest.TestCase):
         self.manager.worker.join(3)
 
     def test_town_conversations_regroup_every_tick_and_report_final_views(self):
-        from misofish.town import town_calls
+        from legisimate.town import town_calls
         run = self.manager.create({"scenario": "Change", "agent_count": 5, "rounds": 2, "platform_mode": "town"})
         self.manager.worker.join(3)
         self.manager.start(run["id"])
@@ -421,7 +421,7 @@ class ServerTests(unittest.TestCase):
         try:
             code, body, headers = request("/api/config")
             self.assertEqual(code, 200)
-            from misofish.core import MAX_AGENTS
+            from legisimate.core import MAX_AGENTS
             self.assertEqual(json.loads(body)["max_agents"], MAX_AGENTS)
             self.assertEqual(json.loads(body).get("default_agents"), 10)
             self.assertTrue(json.loads(body).get("legal_corpus", {}).get("available"))
@@ -454,7 +454,7 @@ class ServerTests(unittest.TestCase):
             thread.join(3)
 
     def test_build_model_from_env_prioritizes_gemini_and_vertex(self):
-        from misofish.server import build_model_from_env
+        from legisimate.server import build_model_from_env
         with unittest.mock.patch.dict(os.environ, {"GEMINI_API_KEY": "AIzaKey", "GEMINI_MODEL": "gemini-2.5-flash"}, clear=True):
             m = build_model_from_env()
             self.assertEqual(m.name, "gemini-2.5-flash")

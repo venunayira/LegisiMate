@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from misofish.casework import (CaseFacts, CaseRequest, CaseWorkbench, assess_timeline, build_hearing,
+from legisimate.casework import (CaseFacts, CaseRequest, CaseWorkbench, assess_timeline, build_hearing,
                               CaseStatement, export_brief, grounded_statement_schema,
                               read_authority, resolve_source_quotes, search_authorities, verify_quotes)
 

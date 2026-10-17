@@ -1,8 +1,8 @@
 import random
 import unittest
 
-from misofish.core import Agent, Config, Profile
-from misofish.town import form_groups, run_town, schedule, town_calls
+from legisimate.core import Agent, Config, Profile
+from legisimate.town import form_groups, run_town, schedule, town_calls
 from test_core import FakeModel
 
 
@@ -56,7 +56,7 @@ class TownTests(unittest.TestCase):
     def test_real_sdk_structured_utterances(self):
         import json
         from openai import OpenAI
-        from misofish.core import Model
+        from legisimate.core import Model
         from test_sdk import ProviderFixture, provider_fixture
         class Fixture(ProviderFixture):
             requests = []

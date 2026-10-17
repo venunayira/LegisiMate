@@ -1,4 +1,4 @@
-# Graph-Grounded Misofish Rebuild
+# Graph-Grounded LegisiMate Rebuild
 
 Status: approved with a local graph backend. Date: 2026-10-14.
 User selected "Use Local Graph Instead" after reviewing the proposed architecture.

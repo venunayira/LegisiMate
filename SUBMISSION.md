@@ -10,7 +10,7 @@ All submission materials, code, documentation, and presentation artifacts are in
 | --- | --- | --- |
 | **Category Specification** | **Accessibility / Social Good / Sustainability** (*Sustainability & Social Impact — Access to Legal Preparation*) | Ready |
 | **Clear Proposal (Deck converted to PDF)** | [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf) (14-slide widescreen PDF) & [LegisiMate-presentation.html](LegisiMate-presentation.html) | Ready |
-| **Functional Prototype (Google Cloud AI & Cloud Run / Firebase)** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [misofish/core.py](misofish/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) + pre-seeded verified showcase case ([data/showcase_cases.json](data/showcase_cases.json)) | Ready |
+| **Functional Prototype (Google Cloud AI & Cloud Run / Firebase)** | Native **Google Gemini / Vertex AI** (`GeminiClient` in [legisimate/core.py](legisimate/core.py)) + **Cloud Run** ([Dockerfile](Dockerfile), [cloudbuild.yaml](cloudbuild.yaml), [scripts/deploy_cloud_run.sh](scripts/deploy_cloud_run.sh)) + **Firebase Hosting** ([firebase.json](firebase.json)) + pre-seeded verified showcase case ([data/showcase_cases.json](data/showcase_cases.json)) | Ready |
 | **Public GitHub Repository** | `https://github.com/venunayira/LegisiMate` | Live |
 | **3-Minute Demo Video Link (YouTube / Vimeo / Google Drive)** | Follow the exact 3-minute recording script in Section 4 below | Script Ready |
 
@@ -26,7 +26,12 @@ All submission materials, code, documentation, and presentation artifacts are in
 - **Social Challenge Addressed:** Bridging the legal preparation gap for individuals, micro/small businesses (MSMEs), junior advocates, and legal-aid clinics facing Section 138 negotiable-instrument (cheque dishonour) disputes in India.
 
 ### One-Line Pitch
-LegisiMate turns scattered payment-dispute facts into a deterministic statutory timeline check, a bounded agentic legal-research trace over 7,143 Indian statutory provisions and 10,139 court judgment chunks, three isolated adversarial courtroom rehearsals with 100% source-bound quotations, and an actionable Case-Readiness Brief for human advocates.
+LegisiMate aims to turn case facts into evidence-backed legal preparation across every country with a constitution; the proof of concept demonstrates that workflow through a selected Indian-law slice, independent courtroom hearings and an advocate-ready brief.
+
+### Product Vision And Demo Scope
+The intended product covers constitutions, legislation, regulations and relevant case law across **every country with a constitution**, rather than stopping at India or one dispute type. For this demo/POC, we deliberately selected **7,143 Indian statutory provisions and 10,139 judgment chunks across 1,600 cases** to exercise Section 138 cheque-dishonour preparation. This slice is not the full Indian corpus and is not evidence of implemented worldwide support. Wider coverage requires authoritative source access, language support, versioned jurisdiction rules and qualified local evaluation.
+
+Every home-page load automatically starts a six-step guided tour over the real case form. It loads the fictional sample, explains what it filled in, the dates and records, the assessment date and the calendar review results, then shows where to start an own case and add TXT/Markdown/CSV notes, ending at hearing depth and consent. Users can skip it, and restart it from **Take the tour** in the page header. Notes do not parse dates, authenticate originals or support PDF/image extraction. Completing the tour never grants consent or starts model analysis automatically.
 
 ---
 
@@ -36,7 +41,7 @@ LegisiMate turns scattered payment-dispute facts into a deterministic statutory 
    - Citizens and small business owners frequently confuse the date printed on a bank return memo with the date bank information was received, overlook missing dispatch/service proof, or rely on generic AI chatbots that hallucinate legal citations, guess dates, and fabricate "win probabilities."
 2. **How LegisiMate Benefits the Community:**
    - **Reduces the Preparation Barrier (Accessibility & Social Good):** Helps individuals and MSMEs organize confirmed vs. unconfirmed dates, identify missing documentary proof (return memos, postal receipts, ledger acknowledgements), and prepare structured questions before meeting a qualified advocate or legal-aid clinic.
-   - **Eliminates Hallucinated Legal Citations:** The generative model cannot invent a statutory quote or case passage. Instead, it selects from retrieved source passage IDs (`quote_id`), and the server deterministically attaches and verifies the exact text from the local Open India Law corpus.
+  - **Binds Quoted Passages to Sources:** The model selects retrieved passage IDs (`quote_id`); the server attaches and verifies the exact corpus text. This constrains quotations, not every free-form legal assertion or its relevance. Interpretation and good-law status still require qualified review.
    - **Encourages Proportional, Informed Resolution:** Surfaces missing evidence and voluntary settlement considerations (`Section 147 NI Act` compounding) alongside adversarial preparation, keeping human judgement and professional legal review at the center.
 
 ---
@@ -46,35 +51,39 @@ LegisiMate turns scattered payment-dispute facts into a deterministic statutory 
 #### 1. Technical Merit & Gen AI Implementation (40%)
 - **Meaningful Use of Generative AI:**
   - Generative AI (**Google Gemini** via Google AI Studio `GEMINI_API_KEY` or **Google Cloud Vertex AI** `GOOGLE_CLOUD_PROJECT`, plus OpenAI-compatible fallback) drives three distinct cognitive stages that static code cannot perform:
-    1. **Bounded Agentic Legal Research (`ResearchDecision`):** Iteratively selects among `search_statutes`, `search_precedents`, `read_authority`, and `check_deadlines` (bounded to $\le 4$ research decisions and a 36-call hard cap) to uncover both supporting and adverse authorities.
-    2. **Case-Specific Path Planning & Isolated Adversarial Rehearsal (`CasePlan` & `CaseStatement`):** Generates three independent preparation paths tailored to the user's facts (e.g., *Notice & Service Maintainability*, *Security Cheque & Enforceable Debt*, *Documentary Cure & Resolution*) and rehearses each path across **Opposing Counsel $\rightarrow$ Selected Side's Counsel $\rightarrow$ Neutral Magistrate** with isolated conversation memory per path.
+    1. **Bounded Agentic Legal Research (`ResearchDecision`):** Selects among `search_statutes`, `search_precedents`, `read_authority`, and `check_deadlines`, with at most four research decisions. The hearing-sized total ceiling is 72 calls by default and 93 at maximum settings.
+    2. **Case-Specific Planning & Full Adversarial Hearings (`CasePlan` & `CaseStatement`):** Plans three independent questions, then schedules nine core participants: Magistrate, two lead counsel, two parties, two witnesses and two juniors. Each path includes openings, parties, direct and cross-examination, one to three rebuttal cycles and final bench assessment. Defaults produce 22 statements per path, 66 total. Optional 0-3 educational assessors are not an Indian jury. Missing testimony is not fabricated.
     3. **Actionable Case-Readiness Brief (`CaseBrief`):** Synthesizes confirmed timeline checks, rehearsed objections, evidence to collect, questions for an advocate, and voluntary resolution options.
 - **Technical Soundness & Neuro-Symbolic Guardrails:**
-  - **Deterministic Statutory Calendar Engine ([misofish/casework.py](misofish/casework.py)):** Never delegates date arithmetic to an LLM. Computes exact 30-day notice deadlines, 15-day cure periods, and true calendar-month complaint windows (`add_calendar_month`), while leaving missing dates explicitly unresolved.
-  - **Source-Bound Quotation Verification (`grounded_statement_schema` & `verify_quotes`):** Dynamically constructs a per-turn Pydantic schema binding each retrieved `source_id` to its exact `quote_id` passages. In our verified showcase case (`c810d87708f94f318b01a2d80dc570e9`), **27 / 27 (100%)** cited passages across 9 courtroom turns match the primary corpus character-for-character.
-  - **Local SQLite + FTS5 Legal Corpus ([misofish/legal.py](misofish/legal.py)):** Indexes **7,143 statutory/regulatory provisions** and **10,139 reconstructed chunks across 1,600 Supreme Court, Delhi HC, and Bombay HC judgments** with hierarchy and section-priority weighting, auto-materialized in ~1.5 seconds from tracked Parquet slices (`11.8 MB`).
+  - **Deterministic Statutory Calendar Engine ([legisimate/casework.py](legisimate/casework.py)):** Never delegates date arithmetic to an LLM. Computes exact 30-day notice deadlines, 15-day cure periods, and true calendar-month complaint windows (`add_calendar_month`), while leaving missing dates explicitly unresolved.
+  - **Source-Bound Quotation Verification (`grounded_statement_schema` & `verify_quotes`):** Dynamically binds each retrieved `source_id` to its `quote_id` passages. A complete fictional live OpenAI-compatible run recorded **69 statements, 10 participants, 73/75 allowed calls and 206/206 source-text quotation matches**. The packaged nine-statement showcase is an older compatibility example, not the new hearing depth. Neither result establishes legal accuracy or Gemini/cloud deployment.
+  - **Local SQLite + FTS5 Legal Corpus ([legisimate/legal.py](legisimate/legal.py)):** Indexes **7,143 statutory/regulatory provisions** and **10,139 reconstructed chunks across 1,600 Supreme Court, Delhi HC, and Bombay HC judgments** with hierarchy and section-priority weighting, auto-materialized in ~1.5 seconds from tracked Parquet slices (`11.8 MB`).
 
 #### 2. Problem Alignment & Impact (25%)
 - Directly targets **Accessibility, Social Good & Sustainability** by empowering underserved citizens, MSMEs, law students, and legal-aid clinics with structured, source-verifiable pre-consultation preparation.
 - Refuses to act as a black-box "verdict predictor": when critical dates or service records are missing, automatic guardrails downgrade any overly optimistic `"supported"` model label to `"needs_evidence"` and disclose what documents must be collected.
 
 #### 3. Innovation & Creativity (25%)
-- **Adversarial Multi-Path Rehearsal with Fresh Memory:** Unlike single-turn legal chatbots or scripted simulations with preset winners, LegisiMate plans three case-specific questions from the retrieved law and rehearses each in an isolated courtroom exchange (Opposing Counsel, Your Counsel, Neutral Magistrate) without cross-branch memory contamination.
+- **Adversarial Multi-Path Rehearsal with Fresh Memory:** Plans three case-specific questions and conducts full hearings with parties, witnesses, cross-examination, juniors and rebuttals. Conversation and reply links reset for every path; no winning branch is preset.
+- **Interactive Hearing Tree:** Select a path/stage node or its keyboard-accessible list to inspect recorded statements and quotations, then open that exact statement in courtroom replay. This visualises recorded alternatives; it is not a calibrated strategy-search engine.
 - **Interactive 2.5D Courtroom Replay + Brief-First Workbench:** Pairs a serious, document-first legal readiness brief with an accessible 2.5D architectural courtroom replay ([web/room.js](web/room.js)) featuring word-by-word readable speech pacing, role-specific Indian judicial/advocate attire, and one-click source inspection.
 
 #### 4. User Experience & Solution Design (10%)
-- **Five Cohesive Views in One Accessible Workbench ([web/cases.html](web/cases.html)):**
+- **Six Cohesive Views in One Accessible Workbench ([web/cases.html](web/cases.html)):**
   1. **Case Details & Live Calendar Preview:** Instant client/server date checks without calling the model until explicit user consent is granted.
   2. **Readiness Brief:** Clear recommendation, next-step checklist, questions for an advocate, and Markdown export.
   3. **Argument Paths:** Side-by-side comparison of the three rehearsed paths with `what_to_say`, `why_it_matters`, and verified quotation badges.
-  4. **Courtroom Rehearsal:** Readable 2.5D visual replay of each path with play/pause, speed controls, and reduced-motion support.
-  5. **Research & Sources:** Full agentic tool trace and full-text statutory/judgment drawer.
+  4. **Decision Tree:** Independent paths and hearing stages with speech/citation inspection and exact-statement replay links.
+  5. **Courtroom Rehearsal:** Readable 2.5D replay with separate party/witness seating, previous/next, statement jump, play/pause, speed and reduced-motion support.
+  6. **Research & Sources:** Full agentic tool trace and full-text statutory/judgment drawer.
+
+Verification on 2026-10-17: all 124 backend tests passed, including the optional legacy engine, plus Node graph/playback checks. Browser fixtures completed the 12-person, 87-statement maximum and checked cancellation, sources, export, reload and mobile layout. A separate full live run used the configured OpenAI-compatible model, not Gemini. These are integration checks, not legal-accuracy or hosting evaluations.
 
 ---
 
 ### Feasibility, Scalability & Google Cloud Compatibility
 - **Stateless Cloud Run Container + Pre-Built Legal Index:** The [Dockerfile](Dockerfile) compiles `legal_poc.db` (`7,143` provisions + `10,139` judgment chunks) during image build so Cloud Run instances start in `< 1 second` with zero external database dependencies.
-- **Google Gemini & Vertex AI Native Adapter:** [misofish/core.py](misofish/core.py) (`GeminiClient`) connects directly to Google AI Studio (`GEMINI_API_KEY`) or Google Cloud Vertex AI (`GOOGLE_CLOUD_PROJECT` using Cloud Run's default service account via the GCE metadata server—no API keys baked into the container).
+- **Google Gemini & Vertex AI Native Adapter:** [legisimate/core.py](legisimate/core.py) (`GeminiClient`) connects directly to Google AI Studio (`GEMINI_API_KEY`) or Google Cloud Vertex AI (`GOOGLE_CLOUD_PROJECT` using Cloud Run's default service account via the GCE metadata server—no API keys baked into the container).
 - **International Scalability via Versioned Jurisdiction Packs:** As detailed in Slides 09–12 of [LegisiMate-Proposal-Deck.pdf](LegisiMate-Proposal-Deck.pdf), the core engine (deterministic rule module + scoped hybrid RAG + source-bound passage contract + isolated multi-role rehearsal) is jurisdiction-agnostic and scales to new legal domains and countries through versioned, rights-verified Jurisdiction Packs (Akoma Ntoso / ELI / USLM).
 
 ---
@@ -119,16 +128,33 @@ Once deployed, the Cloud Run URL immediately serves:
 
 ---
 
-## 4. 3-Minute Demo Video Script (YouTube / Vimeo / Google Drive)
+## 4. 3-Minute Demo Video (YouTube / Vimeo / Google Drive)
 
-Record at `1440x900` or `1920x1080` with two tabs open:
-- **Tab 1:** [LegisiMate-presentation.html](LegisiMate-presentation.html) (Interactive Proposal Deck)
-- **Tab 2:** Live LegisiMate Workbench (`/?case=c810d87708f94f318b01a2d80dc570e9`)
+The demo is a 2:49 motion-graphics explainer generated from real captures of the running workbench and the proposal deck. It is narrated by the macOS "Aman" voice (Indian English), with captions burned in, a separate SRT file, and a music bed generated locally. All case data shown is fictional: the packaged showcase case `c810d877…` (recorded with Gemini 2.5 Flash) supplies the brief, research trace and 27/27 quotation result; the fictional verification case `de055d87…` supplies the full-hearing decision tree and courtroom footage.
 
-| Timestamp | Screen Action | Voiceover Script |
-| --- | --- | --- |
-| **0:00 – 0:30** | **Tab 1 (Presentation Slide 01 & Slide 02):** Click through the 3 case documents (*The cheque*, *Bank return memo*, *Written demand*) and toggle *Business owner* / *Junior advocate*. | *"When a small business owner in India has a ₹2.4 lakh cheque dishonoured, the hardest part comes before court: knowing which dates trigger statutory deadlines under Section 138 of the Negotiable Instruments Act, what documents are missing, and what opposing counsel will argue. Generic chatbots guess dates and hallucinate citations. We built LegisiMate—an evidence-backed legal preparation workbench under the Accessibility and Social Good track."* |
-| **0:30 – 1:05** | **Tab 2 (Workbench — Case Details view):** Click **Load sample case**, show the confirmed dates vs. blank service date, and highlight the **Calendar checks** panel on the right. | *"In the LegisiMate workbench, we enter anonymised case facts or load our sample MSME textile dispute. Notice that before any AI model is called, deterministic Python calendar rules compute the 30-day demand notice window under Section 138 Proviso (b), the 15-day payment period, and the one-calendar-month filing window under Section 142. Because the notice receipt date isn't confirmed by a postal acknowledgement yet, LegisiMate flags it as missing rather than guessing."* |
-| **1:05 – 1:45** | **Tab 2 (Workbench — Readiness Brief & Research & Sources views):** Click the completed case in the sidebar (`A small textile supplier...`), show the **Readiness Brief**, then click **Research & sources** and open a cited Supreme Court / statutory record in the drawer. | *"Once the user grants explicit consent, our bounded Gemini research agent queries a local SQLite FTS5 corpus of 7,143 Indian statutory provisions and 10,139 Supreme Court and High Court judgment chunks. In the Research & Sources tab, every tool call is transparent. Crucially, the model cannot invent quotations—it must select a passage ID from retrieved sources, and the server verifies 27 out of 27 exact quote matches."* |
-| **1:45 – 2:30** | **Tab 2 (Workbench — Argument Paths & Courtroom Rehearsal views):** Show the **Argument paths** tab comparing Path 1, Path 2, and Path 3, then switch to **Courtroom rehearsal** and click **Play**. | *"Instead of a scripted winner, LegisiMate plans three case-specific preparation paths—testing complainant documentary proof, the strongest adverse security-cheque defence, and evidence-gathering/settlement. Each path runs with fresh memory across Defence Counsel, Complainant Counsel, and a Neutral Magistrate. In the 2.5D Courtroom Rehearsal view, users can watch and read each exchange step by step, seeing exactly what to say, why it matters, and which statutory or Supreme Court passage backs it."* |
-| **2:30 – 3:00** | **Tab 1 (Presentation Slide 08, Slide 09 & Slide 14):** Show the Architecture trace and the Global Jurisdiction Pack roadmap, then click **Export brief (.md)** in Tab 2. | *"Users leave with a downloadable Markdown Readiness Brief listing the exact documents to collect and questions for their advocate. Built with Google Gemini, Vertex AI, and Cloud Run with zero-cold-start embedded legal indexing, LegisiMate's engine is designed to scale globally through versioned, locally verified Jurisdiction Packs. Thank you!"* |
+Rendered files (not committed): `video/build/LegisiMate-explainer-1080p.mp4` and `video/build/LegisiMate-explainer.srt`. To regenerate them with the workbench running on port 8765:
+
+```sh
+.venv/bin/python video/build_audio.py                                     # narration, timeline, captions, SRT
+swiftc -O video/audio.swift -o video/build/audio && video/build/audio video # music bed, sound effects, mix
+swiftc -O video/studio.swift -o video/build/studio
+video/build/studio capture video/shots.json                               # product and deck captures
+video/build/studio render video/explainer.html video/build/mix.wav video/build/LegisiMate-explainer-1080p.mp4
+```
+
+To screen record instead of rendering: run `.venv/bin/python video/serve.py`, open `http://127.0.0.1:8899/video/explainer.html?play` in Safari or Chrome, press **F** for full screen, start a screen recording, then click. A white sync flash precedes playback, so the recording can be silent:
+
+```sh
+video/build/studio addaudio "<recording>.mov" video/build/mix.wav video/build/LegisiMate-explainer.mp4
+```
+
+This finds the flash, crops the player area to 1920x1080, trims to the narration length and adds the narration and music.
+
+| Time | Scene | On screen | Narration |
+| --- | --- | --- | --- |
+| **0:00 – 0:07** | Opening | Scales icon draws itself; LegisiMate wordmark and tagline | *(music)* |
+| **0:07 – 0:35** | The problem | The three case documents, a statutory clock (30 / 15 days, 1 month), open questions, a chatbot answer with a guessed date and a missing citation | *"When a small business owner in India has a ₹2.4 lakh cheque dishonoured, the hardest part comes before court. Which dates start the statutory clock under Section 138 of the Negotiable Instruments Act? Which documents are missing? What will the other side argue? Generic chatbots guess dates and invent citations. So we built LegisiMate: an evidence-backed legal preparation workbench, for accessibility and social good."* |
+| **0:35 – 1:03** | Case details & calendar | Load sample case, the guided tour, the Dates & records fields, a timeline computed from the sample dates, and the "Not confirmed" check after the receipt date is cleared | *"In the workbench, you enter anonymised facts, or load our sample textile-supply dispute. A guided tour walks new users through every field. Before any AI model is called, deterministic code checks the dates: the thirty-day window for the demand notice, the fifteen-day payment period, and the one-calendar-month filing window under Section 142. If the notice receipt date isn't confirmed, LegisiMate marks it "not confirmed" instead of guessing."* |
+| **1:03 – 1:36** | Research & sources | Readiness brief, corpus counters (7,143 provisions, 10,139 judgment passages), the agent trace, passage-ID binding to stored Section 138(c) text, and 27/27 matched quotations | *"With explicit consent, a bounded research agent, Gemini in this showcase case, searches a local legal index: more than 7,000 Indian statutory provisions, and 10,000 Supreme Court and High Court judgment passages. Every tool call is visible. And the model can't invent a quotation: it must pick a passage ID from the retrieved sources, and the server checks the text. In this case, all 27 quotations match their sources exactly. That proves where each quote comes from, not that an argument is right."* |
+| **1:36 – 2:10** | Courtroom hearings | Three independent paths and their stages, the nine core roles, the 22-statement schedule, the decision-tree inspector and courtroom replay | *"Then LegisiMate rehearses three case-specific hearings, each starting fresh. Parties speak. Witnesses face direct and cross-examination. Junior counsel join the rebuttals, and the magistrate closes. That's 22 statements per path, by default. The decision tree links every stage to the actual speeches and their sources. Open any statement, and replay it in the courtroom. The magistrate, counsel, parties and witnesses each take their own seat. Optional assessors give educational feedback only. Never a jury, and never a promised outcome."* |
+| **2:10 – 2:49** | Brief, architecture & vision | The exported brief, local storage and consent, the architecture slide, a globe with the Indian-law slice today and planned jurisdiction packs, closing logo | *"You leave with a downloadable readiness brief: documents to collect, and questions for your advocate. Cases are saved locally, and nothing goes to a model without your consent. Date rules run as code, retrieval runs locally, and Gemini and Vertex AI adapters are built in, packaged for Cloud Run. This demo uses a selected slice of Indian law. The goal is every country with a constitution, through versioned, locally verified jurisdiction packs. LegisiMate. Justice begins with preparation."* |

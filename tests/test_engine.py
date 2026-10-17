@@ -22,7 +22,7 @@ class EngineTests(unittest.TestCase):
         lines = [effect, effect, {"kind": "worker_terminal", "data": {"status": "completed"}}]
         process = Mock(stdin=io.StringIO(), stdout=io.StringIO("\n".join(json.dumps(line) for line in lines)))
         process.poll.return_value = 0
-        with tempfile.TemporaryDirectory() as directory, patch.object(engine, "available", return_value={"available": True}), patch("misofish.engine.subprocess.Popen", return_value=process):
+        with tempfile.TemporaryDirectory() as directory, patch.object(engine, "available", return_value={"available": True}), patch("legisimate.engine.subprocess.Popen", return_value=process):
             events = []
             result = engine.run({"version": 2, "model": "fixture", "config": {}, "agents": [], "storage": directory},
                 lambda kind, data: events.append((kind, data)), lambda: False)
@@ -224,9 +224,9 @@ class EngineTests(unittest.TestCase):
             server.shutdown(); server.server_close(); thread.join(3)
 
     def engine_type(self):
-        self.assertIsNotNone(importlib.util.find_spec("misofish.engine"),
+        self.assertIsNotNone(importlib.util.find_spec("legisimate.engine"),
                              "The real OASIS worker supervisor is not implemented.")
-        return importlib.import_module("misofish.engine").Engine
+        return importlib.import_module("legisimate.engine").Engine
 
     def test_engine_requires_supported_python(self):
         engine = self.engine_type()(python=sys.executable)

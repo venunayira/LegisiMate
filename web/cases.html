@@ -26,7 +26,7 @@
     <main id="workspace" class="case-main" tabindex="-1">
       <header class="case-header">
         <div><p class="eyebrow">Indian jurisdiction / Section 138 NI Act</p><h1 id="page-title">Case details</h1><p id="case-subtitle" class="muted">Cheque dishonour</p></div>
-        <div class="header-actions"><span id="case-status" class="case-status" role="status">New case</span><button id="stop-analysis" type="button" hidden><i data-lucide="square" aria-hidden="true"></i>Stop</button><a id="download-brief" class="icon-button" aria-label="Download case brief" title="Download case brief" download="legisimate-brief.md" hidden><i data-lucide="download" aria-hidden="true"></i></a><button id="delete-case" class="icon-button danger-icon" type="button" aria-label="Delete saved case" title="Delete saved case" hidden><i data-lucide="trash-2" aria-hidden="true"></i></button></div>
+        <div class="header-actions"><button id="start-tour" class="text-button" type="button"><i data-lucide="route" aria-hidden="true"></i>Take the tour</button><span id="case-status" class="case-status" role="status">New case</span><button id="stop-analysis" type="button" hidden><i data-lucide="square" aria-hidden="true"></i>Stop</button><a id="download-brief" class="icon-button" aria-label="Download case brief" title="Download case brief" download="legisimate-brief.md" hidden><i data-lucide="download" aria-hidden="true"></i></a><button id="delete-case" class="icon-button danger-icon" type="button" aria-label="Delete saved case" title="Delete saved case" hidden><i data-lucide="trash-2" aria-hidden="true"></i></button></div>
       </header>
       <p id="app-error" class="alert error" role="alert" hidden></p>
       <p id="provider-warning" class="alert warning" hidden>The AI provider is unavailable. Calendar checks remain available.</p>
@@ -47,7 +47,7 @@
             <label for="case-scenario">Case facts</label><textarea id="case-scenario" name="scenario" minlength="25" maxlength="6000" rows="5" required placeholder="Describe the cheque, the payment obligation, why it was returned, and what each side disputes."></textarea>
             <p class="field-note">Anonymised facts only. Unconfirmed dates should stay blank.</p>
             <div class="section-heading section-break"><h2>Dates &amp; records</h2><span class="muted small">Optional, unless confirmed</span></div>
-            <div class="form-grid">
+            <div id="dates-records" class="form-grid">
               <div><label for="cheque-date">Cheque date</label><input id="cheque-date" name="cheque_date" type="date"></div>
               <div><label for="presented-on">Presented to bank</label><input id="presented-on" name="presented_on" type="date"></div>
               <div><label for="valid-until">Bank-confirmed validity end</label><input id="valid-until" name="valid_until" type="date"></div>
@@ -59,7 +59,7 @@
               <div><label for="debt-evidence">Debt or liability records</label><select id="debt-evidence" name="debt_evidence"><option value="unknown">Not confirmed</option><option value="available">Records available</option><option value="disputed">Liability disputed</option></select></div>
               <div><label for="payment-received">Payment after notice</label><select id="payment-received" name="payment_received"><option value="unknown">Not confirmed</option><option value="no">No payment reported</option><option value="yes">Payment reported</option></select></div>
             </div>
-            <div class="section-heading section-break"><h2>Supporting notes</h2><label class="file-button" for="evidence-file"><i data-lucide="paperclip" aria-hidden="true"></i>Add text file<input id="evidence-file" class="visually-hidden" type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv"></label></div>
+            <div id="notes-heading" class="section-heading section-break"><h2>Supporting notes</h2><label class="file-button" for="evidence-file"><i data-lucide="paperclip" aria-hidden="true"></i>Add text file<input id="evidence-file" class="visually-hidden" type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv"></label></div>
             <textarea id="case-evidence" name="evidence" rows="3" maxlength="16000" aria-label="Supporting notes" placeholder="Relevant extracts from the return memo, notice, agreement, or ledger."></textarea><p id="file-status" class="field-note" role="status">Text extracts only. Original documents are not authenticated.</p>
             <fieldset class="simulation-settings section-break"><legend>Hearing depth</legend><div class="form-grid">
               <div><label for="rebuttal-rounds">Rebuttal cycles per path</label><input id="rebuttal-rounds" name="rebuttal_rounds" type="number" min="1" max="3" step="1" value="2" required></div>
@@ -92,6 +92,15 @@
       </section>
       <footer class="case-footer"><span>Preparation support, not legal advice or an outcome prediction.</span><span>English corpus / SC, Delhi &amp; Bombay HC</span></footer>
     </main>
+  </div>
+  <div id="tour" class="tour" hidden>
+    <section id="tour-panel" class="tour-panel" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-body">
+      <div class="tour-top"><p id="tour-position" class="eyebrow" role="status">Step 1 of 6</p><button id="tour-skip" class="text-button" type="button">Skip tour</button></div>
+      <h2 id="tour-title" tabindex="-1">Start with the sample case</h2>
+      <div id="tour-body" class="tour-body"></div>
+      <p id="tour-notice" class="alert error" role="alert" hidden></p>
+      <div class="tour-navigation"><button id="tour-back" type="button" disabled><i data-lucide="arrow-left" aria-hidden="true"></i>Back</button><button id="tour-next" class="primary" type="button"><span id="tour-next-label">Load sample case</span><i data-lucide="arrow-right" aria-hidden="true"></i></button></div>
+    </section>
   </div>
   <dialog id="delete-dialog"><form method="dialog"><h2>Delete this saved case?</h2><p>The local brief, facts, and research record will be removed. This does not erase data already sent to the model provider.</p><div class="dialog-actions"><button value="cancel">Keep case</button><button id="confirm-delete" class="danger" type="button">Delete case</button></div></form></dialog>
 </body>

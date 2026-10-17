@@ -1,4 +1,4 @@
-# Misofish: ten-agent local simulation
+# LegisiMate: ten-agent local simulation
 
 ## Intent and authorization
 Build an independent small MiroFish-inspired scenario exploration app. User requirements: no copied source/logic, at most 10 agents, simpler implementation, OpenAI SDK, REA/Superpowers/Ponytail workflow. User authorized creation after the proposed core; implementation defaults below are builder decisions, not separately user-specified requirements.

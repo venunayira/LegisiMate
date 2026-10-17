@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from misofish.core import Config
+from legisimate.core import Config
 
 
 SOURCE = "Elin runs the clinic. The clinic needs funding."
@@ -31,7 +31,7 @@ class GraphModel:
               "actor_types": ["person", "organization"]}
         if output_type.__name__ != "Ontology":
             result = self.batch
-            from misofish.graph import GraphBatch
+            from legisimate.graph import GraphBatch
             return GraphBatch.model_validate(copy.deepcopy(result))
         return output_type.model_validate(copy.deepcopy(result))
 
@@ -81,8 +81,8 @@ class GraphTests(unittest.TestCase):
         import tempfile
         from contextlib import closing
         from pathlib import Path
-        from misofish.core import Config
-        from misofish.graph import GraphStore, build_graph
+        from legisimate.core import Config
+        from legisimate.graph import GraphStore, build_graph
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "graph.db"
             store = GraphStore(path)
@@ -99,9 +99,9 @@ class GraphTests(unittest.TestCase):
             self.assertTrue(store.context("rollback", graph["nodes"][0]["id"], "clinic")["matches"])
 
     def api(self):
-        self.assertIsNotNone(importlib.util.find_spec("misofish.graph"),
+        self.assertIsNotNone(importlib.util.find_spec("legisimate.graph"),
                              "The approved local evidence graph is not implemented.")
-        return importlib.import_module("misofish.graph")
+        return importlib.import_module("legisimate.graph")
 
     def test_graph_rejects_invented_source_spans(self):
         api = self.api()

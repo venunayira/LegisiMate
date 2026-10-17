@@ -1,5 +1,5 @@
 {
-  "name": "misofish-local-assets",
+  "name": "legisimate-local-assets",
   "private": true,
   "scripts": {
     "build": "esbuild web/vendor-entry.js --bundle --minify --outfile=web/assets/vendor.js --loader:.woff2=file --loader:.woff=file --legal-comments=linked"

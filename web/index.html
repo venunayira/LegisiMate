@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Misofish | Scenario Workbench</title>
+  <title>LegisiMate | Scenario Workbench</title>
   <link rel="stylesheet" href="/assets/vendor.css">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/room.css">
@@ -13,7 +13,7 @@
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to experiment</a>
-  <header class="topbar"><div class="brand"><i data-lucide="fish" aria-hidden="true"></i><h1>Misofish</h1><span>Scenario Workbench</span></div><span id="model-name" class="muted">Connecting</span></header>
+  <header class="topbar"><div class="brand"><i data-lucide="scale" aria-hidden="true"></i><h1>LegisiMate</h1><span>Scenario Workbench</span></div><span id="model-name" class="muted">Connecting</span></header>
   <p id="error" role="alert" class="error" hidden></p>
   <p id="setup" class="error" hidden>Provider unavailable. Configure the endpoint in the local environment.</p>
   <main class="workbench">
@@ -37,7 +37,7 @@
       <p class="disclaimer">Synthetic exploration. Not a calibrated forecast or representative population.</p>
     </aside>
     <section id="workspace" class="workspace" tabindex="-1">
-      <div class="run-heading"><div><span id="status" class="status" role="status">No Experiment Selected</span><h2 id="run-title">Conversation Room</h2></div><div class="run-controls"><button id="start" class="primary" type="button" hidden><i data-lucide="play"></i>Start</button><button id="cancel" type="button" hidden><i data-lucide="square"></i>Stop Run</button><a id="export" class="icon-button" title="Export evidence" aria-label="Export evidence" hidden download="misofish-report.md"><i data-lucide="download"></i></a></div></div>
+      <div class="run-heading"><div><span id="status" class="status" role="status">No Experiment Selected</span><h2 id="run-title">Conversation Room</h2></div><div class="run-controls"><button id="start" class="primary" type="button" hidden><i data-lucide="play"></i>Start</button><button id="cancel" type="button" hidden><i data-lucide="square"></i>Stop Run</button><a id="export" class="icon-button" title="Export evidence" aria-label="Export evidence" hidden download="legisimate-report.md"><i data-lucide="download"></i></a></div></div>
       <div class="metrics"><span><strong id="agent-metric">0</strong> personas</span><span id="round-metric">0 / 0 ticks</span><span id="call-metric">0 calls</span><span id="token-metric">0 reported tokens</span></div>
       <progress id="progress" value="0" max="1" aria-label="Completed simulation ticks"></progress><p id="run-error" class="error-inline" role="status"></p>
       <nav class="view-tabs" role="tablist" aria-label="Experiment views"><button id="tab-room" role="tab" aria-selected="true" aria-controls="view-room">Courtroom / Town</button><button id="tab-graph" role="tab" aria-selected="false" aria-controls="view-graph" tabindex="-1">Decision Tree &amp; Graph</button><button id="tab-transcript" role="tab" aria-selected="false" aria-controls="view-transcript" tabindex="-1">Discussion</button><button id="tab-synthesis" role="tab" aria-selected="false" aria-controls="view-synthesis" tabindex="-1">Report</button></nav>

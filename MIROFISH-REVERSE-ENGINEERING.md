@@ -254,8 +254,8 @@ the prompt asks an initiating persona to post or pass, but validation accepts
 a reply to older visible evidence. Several saved initiating turns did that.
 This is not proof of the third-round cause; it demonstrates why action semantics
 need one authoritative tool contract rather than instructions and guards that
-disagree. Sources: [prompt and validation](misofish/core.py#L230),
-[lossy failure handling](misofish/server.py#L247).
+disagree. Sources: [prompt and validation](legisimate/core.py#L230),
+[lossy failure handling](legisimate/server.py#L247).
 
 ### Evidence Status And Build Consequences
 
@@ -311,7 +311,7 @@ The cause was a broad provider schema (`1..4` actors and unconstrained string re
 
 ### Timeout And Complete Preparation Verification
 
-The subsequent generic API failure in run `ed045bc2a4134d3a9d62b87b78f89bae` was identified from the server's typed log as `APITimeoutError`, not a demonstrated schema/endpoint rejection. Its individual saved-graph profile request succeeded when reproduced. Both host and worker had hard-coded 60-second deadlines; they now share a configurable 180-second default through `MISOFISH_MODEL_TIMEOUT`, with retries still disabled and a specific `provider_timeout` diagnostic.
+The subsequent generic API failure in run `ed045bc2a4134d3a9d62b87b78f89bae` was identified from the server's typed log as `APITimeoutError`, not a demonstrated schema/endpoint rejection. Its individual saved-graph profile request succeeded when reproduced. Both host and worker had hard-coded 60-second deadlines; they now share a configurable 180-second default through `LEGISIMATE_MODEL_TIMEOUT`, with retries still disabled and a specific `provider_timeout` diagnostic.
 
 An initial authorized full-preparation check then failed graph validation before any profiles. The discarded response does not establish which graph guard failed; a separate instrumented extraction passed. Graph provider schemas were tightened to source IDs, ontology labels and exact supplied excerpts while retaining local span/endpoint validation and specific safe graph codes. A concurrent user preparation was left untouched until inactive.
 

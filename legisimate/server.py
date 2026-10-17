@@ -1,4 +1,4 @@
-"""Single-user loopback server; run with python -m misofish.server."""
+"""Single-user loopback server; run with python -m legisimate.server."""
 import argparse
 import fcntl
 import json
@@ -376,17 +376,22 @@ class Manager:
 
 
 def build_model_from_env():
-    timeout = float(os.getenv("MISOFISH_MODEL_TIMEOUT", "180"))
+    timeout = float(os.getenv("LEGISIMATE_MODEL_TIMEOUT") or os.getenv("MISOFISH_MODEL_TIMEOUT", "180"))
     gemini_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     vertex_project = (os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("VERTEX_PROJECT") or "").strip()
+    cloud_fallback = bool(os.getenv("K_SERVICE")) or os.getenv("LEGISIMATE_CLOUD_FALLBACK") == "1"
     if gemini_key:
-        return Model(GeminiClient(api_key=gemini_key, timeout=timeout), os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
+        return Model(GeminiClient(api_key=gemini_key, timeout=timeout, allow_fallback=cloud_fallback),
+                     os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
     if vertex_project and os.getenv("USE_VERTEX_AI", "1") != "0":
         location = os.getenv("VERTEX_LOCATION", "us-central1")
-        return Model(GeminiClient(project=vertex_project, location=location, timeout=timeout),
+        return Model(GeminiClient(project=vertex_project, location=location, timeout=timeout, allow_fallback=cloud_fallback),
                      os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
     if os.getenv("OPENAI_API_KEY"):
         return Model(OpenAI(timeout=timeout, max_retries=0), os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    if cloud_fallback:
+        return Model(GeminiClient(project="google-cloud-run", timeout=timeout, allow_fallback=True),
+                     os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
     return None
 
 
@@ -598,7 +603,7 @@ def make_server(manager, port=8000, host="127.0.0.1"):
 def main():
     default_host = "0.0.0.0" if os.getenv("K_SERVICE") else os.getenv("HOST", "127.0.0.1")
     default_port = int(os.getenv("PORT", "8000"))
-    parser = argparse.ArgumentParser(description="LegisiMate / Misofish case-preparation and simulation server.")
+    parser = argparse.ArgumentParser(description="LegisiMate case-preparation and simulation server.")
     parser.add_argument("--host", default=default_host)
     parser.add_argument("--port", type=int, default=default_port)
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data")
@@ -609,13 +614,13 @@ def main():
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            parser.exit(1, "Another Misofish server already owns this data directory.\n")
+            parser.exit(1, "Another LegisiMate server already owns this data directory.\n")
         store = Store(args.data_dir / "runs.db")
         store.recover()
         model = build_model_from_env()
         manager = Manager(store, model)
         server = make_server(manager, args.port, host=args.host)
-        print(f"Misofish: http://{args.host}:{server.server_port} · default {DEFAULT_AGENT_COUNT} personas · deployment ceiling {MAX_AGENTS}", flush=True)
+        print(f"LegisiMate: http://{args.host}:{server.server_port} · default {DEFAULT_AGENT_COUNT} personas · deployment ceiling {MAX_AGENTS}", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:

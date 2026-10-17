@@ -10,7 +10,7 @@ const context = vm.createContext({
   document:{getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element},
   window:{addEventListener(){}},matchMedia:()=>({matches:false}),
   AbortSignal:{timeout:()=>({})},fetch:()=>new Promise(()=>{}),
-  MisofishAssets:{createIcons(){},cytoscape(options){projected=options.elements;return {on(){},destroy(){}};}}
+  LegisiMateAssets:{createIcons(){},cytoscape(options){projected=options.elements;return {on(){},destroy(){}};}}
 });
 vm.runInContext(fs.readFileSync(path.join(__dirname,'..','web','app.js'),'utf8'),context);
 const base = [
@@ -36,15 +36,68 @@ check([]);
 console.log('Social graph: duplicate suppression, platform isolation, unfollow and unchanged history pass');
 
 const caseElements = new Map();
-const caseElement = () => ({value: '', validity: {valid: true}, addEventListener(){}, reset(){},
-  replaceChildren(){}, append(){}, elements: {namedItem: () => ({value: ''})}});
+const caseRequests = [];
+const documentListeners = new Map();
+const caseElement = () => ({value: '', validity: {valid: true}, listeners: new Map(), hidden: false, style: {}, dataset: {}, children: [],
+  classList: {add(){}, remove(){}}, addEventListener(name, listener){this.listeners.set(name, listener);}, reset(){},
+  focus(){}, setAttribute(){}, scrollIntoView(){}, getBoundingClientRect: () => ({top: 0, bottom: 0, left: 0, right: 0}),
+  replaceChildren(...children){this.children = children;}, append(...children){this.children.push(...children);}, elements: {namedItem: () => ({value: ''})}});
 const caseContext = vm.createContext({
   document: {getElementById(id){if(!caseElements.has(id))caseElements.set(id,caseElement());return caseElements.get(id);},
-    querySelector: caseElement, createElement: caseElement},
-  window: {addEventListener(){}}, AbortSignal: {timeout:()=>({})}, fetch:()=>new Promise(()=>{}),
-  MisofishAssets: {createIcons(){}}, setTimeout(){}, clearTimeout(){}
+    querySelector: selector => caseElements.get(selector) || (caseElements.set(selector, caseElement()), caseElements.get(selector)),
+    querySelectorAll: () => [], createElement: caseElement, addEventListener(name, listener){documentListeners.set(name, listener);}},
+  window: {addEventListener(){}, innerWidth: 1440, innerHeight: 900}, AbortSignal: {timeout:()=>({})},
+  history: {replaceState(){}}, ConversationRoom: {reset(){}},
+  fetch:(request, options = {}) => { caseRequests.push({request, method: options.method || 'GET'}); return new Promise(()=>{}); },
+  LegisiMateAssets: {createIcons(){}}, setTimeout(){}, clearTimeout(){}
 });
 vm.runInContext(fs.readFileSync(path.join(__dirname,'..','web','cases.js'),'utf8'),caseContext);
+const tour = caseElements.get('tour');
+assert.equal(tour.hidden,false,'The home tour opens before configuration requests finish');
+assert.equal(caseElements.get('.app-shell').inert,true,'The page is inert while the tour runs');
+tour.hidden = true;
+vm.runInContext('initialize()',caseContext);
+assert.equal(tour.hidden,false,'Every home-page initialization opens the tour again');
+const tourNext = () => caseElements.get('tour-next').listeners.get('click')();
+const tourBack = () => caseElements.get('tour-back').listeners.get('click')();
+const title = () => caseElements.get('tour-title').textContent;
+assert.equal(caseElements.get('tour-back').disabled,true);
+assert.equal(caseElements.get('tour-next-label').textContent,'Load sample case');
+caseElements.get('tour-skip').listeners.get('click')();
+assert.equal(tour.hidden,true,'Skip closes the tour');
+assert.equal(caseElements.get('.app-shell').inert,false,'The page is usable after skipping');
+caseElements.get('start-tour').listeners.get('click')();
+assert.equal(tour.hidden,false,'Take the tour reopens it manually');
+assert.equal(title(),'Start with the sample case','A manual tour starts from the first step');
+let escapePrevented = false;
+documentListeners.get('keydown')({key: 'Escape', preventDefault(){escapePrevented = true;}});
+assert.equal(tour.hidden,true,'Escape skips the tour'); assert.equal(escapePrevented,true);
+caseElements.get('start-tour').listeners.get('click')();
+tourNext();
+assert.equal(title(),'What the sample just filled in');
+assert.match(caseElements.get('case-scenario').value,/textile supplier/,'The first step loads the sample into the real form');
+tourBack();
+assert.equal(title(),'Start with the sample case');
+tourNext(); tourNext();
+assert.equal(title(),'Dates & records');
+const bodyText = () => JSON.stringify(caseElements.get('tour-body').children.map(child => child.children.length ? child.children.map(item => item.textContent) : child.textContent));
+const dateText = bodyText();
+assert.match(dateText,/Assessment date/); assert.match(dateText,/Complaint filed: Not confirmed/);
+tourNext();
+assert.equal(title(),'Calendar review');
+vm.runInContext("state.timeline={checked:2,attention:1,missing:1,checks:[{title:'Notice timing',status:'checked'}]};renderTour()",caseContext);
+assert.match(bodyText(),/2 input checks met.*Notice timing: meets the base check/);
+tourNext();
+assert.equal(title(),'Supporting notes & your own case');
+tourNext();
+assert.equal(title(),'Review, consent, analyse');
+assert.equal(caseElements.get('tour-skip').hidden,true,'The last step completes instead of skipping');
+tourNext();
+assert.equal(tour.hidden,true,'The final action completes the tour');
+assert.equal(caseElements.get('.app-shell').inert,false,'The page is usable after the tour');
+assert.equal(caseRequests.filter(item=>item.request==='/api/cases'&&item.method==='POST').length,0,'The tour never starts paid analysis');
+assert.notEqual(caseElements.get('case-consent').checked,true,'The tour never grants model consent');
+console.log('Home tour: every-load opening, skip, Escape, manual restart, sample loading, dates/records and calendar explanations, back, completion and no automatic analysis pass');
 const treeRun = {id:'case-tree',branches:[1,2,3].map(branch => ({id:branch,title:`Alternative ${branch}`,status:'completed',
   assessment:'needs_evidence',turns:['Opening arguments','Witness examination','Rebuttals','Bench assessment'].map((phase,index)=>({
     id:branch*100+index,role:index===3?'Presiding Magistrate':'Complainant Counsel',text:'Recorded statement',data:{phase}}))}))};

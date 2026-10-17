@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
-from misofish.core import Config
-from misofish.court import court_calls, court_role_for_slot, run_court, schedule_court
-from misofish.legal import ensure_legal_db, legal_status, retrieve_legal_dossier, retrieve_turn_authorities
-from misofish.server import Manager, Store
+from legisimate.core import Config
+from legisimate.court import court_calls, court_role_for_slot, run_court, schedule_court
+from legisimate.legal import ensure_legal_db, legal_status, retrieve_legal_dossier, retrieve_turn_authorities
+from legisimate.server import Manager, Store
 from scripts.extract_open_india_law import search_legal_corpus
 from test_core import FakeModel, FixtureEngine
 

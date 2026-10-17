@@ -21,7 +21,7 @@ class LauncherTests(unittest.TestCase):
             result = subprocess.run(["/bin/sh", str(root / "run.sh"), "--port", "8765"],
                                     cwd="/", env={"PATH": os.environ["PATH"]}, capture_output=True, text=True, check=True)
             self.assertEqual(result.stdout.splitlines(), ["gpt-5.4-mini", "local test value",
-                "https://example.openai.azure.com/openai/v1/", str(root), "-m", "misofish.server", "--port", "8765"])
+                "https://example.openai.azure.com/openai/v1/", str(root), "-m", "legisimate.server", "--port", "8765"])
 
     def test_launcher_preserves_environment_without_local_file(self):
         with tempfile.TemporaryDirectory() as directory:

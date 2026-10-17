@@ -5,7 +5,7 @@ from concurrent.futures import Future
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from misofish.core import Action, Config, Model, run_round
+from legisimate.core import Action, Config, Model, run_round
 from test_core import FakeModel, roster
 
 
@@ -29,7 +29,7 @@ class ConversationTests(unittest.TestCase):
         def collect_success_first(futures,**kwargs):
             succeeded={f for f in futures if f.exception() is None}
             return succeeded,set(futures)-succeeded
-        with patch('misofish.core.ThreadPoolExecutor',ImmediatePool),patch('misofish.core.wait',collect_success_first),self.assertRaises(ValueError):
+        with patch('legisimate.core.ThreadPoolExecutor',ImmediatePool),patch('legisimate.core.wait',collect_success_first),self.assertRaises(ValueError):
             run_round(Config(scenario='Change',agent_count=4),roster(4),[],fake)
 
     def test_cancel_while_entering_commit_lock_cannot_publish_turn(self):
@@ -37,7 +37,7 @@ class ConversationTests(unittest.TestCase):
         class CancelOnAcquire:
             def __enter__(self):stopped.set()
             def __exit__(self,*args):return False
-        with patch('misofish.core.Lock',return_value=CancelOnAcquire()):
+        with patch('legisimate.core.Lock',return_value=CancelOnAcquire()):
             result=run_round(Config(scenario='Change',agent_count=1),roster(1),[],FakeModel(),
                              cancelled=stopped.is_set,on_action=committed.append)
         self.assertEqual(result,[])

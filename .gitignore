@@ -17,6 +17,8 @@ data/open_india_law/*
 !data/open_india_law/domain_judgments.parquet
 !data/open_india_law/extraction_manifest.json
 .superpowers/
+# Video captures, scripts, and renders.
+video/
 # Existing third-party reference and artifact investigation remain separate.
 MiroFish/
 .rea/

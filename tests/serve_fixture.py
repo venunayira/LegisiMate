@@ -6,16 +6,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from openai import OpenAI
-from misofish.core import Model
-from misofish.engine import Engine
-from misofish.server import Manager, Store, make_server
+from legisimate.core import Model
+from legisimate.engine import Engine
+from legisimate.server import Manager, Store, make_server
 from test_sdk import ProviderFixture, provider_fixture
 
 
 if __name__ == "__main__":
     ProviderFixture.pacing = 0.06
     provider, thread = provider_fixture()
-    with tempfile.TemporaryDirectory(prefix="misofish-browser-") as directory:
+    with tempfile.TemporaryDirectory(prefix="legisimate-browser-") as directory:
         with OpenAI(api_key="local-fixture", base_url=f"http://127.0.0.1:{provider.server_port}/v1",
                     max_retries=0, timeout=5) as client:
             ProviderFixture.tool_factory = staticmethod(lambda request: [{"id": "fixture_speech", "type": "function",

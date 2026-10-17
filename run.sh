@@ -7,4 +7,4 @@ if [ -f .env ]; then
     . ./.env
     set +a
 fi
-exec .venv/bin/python -m misofish.server "$@"
+exec .venv/bin/python -m legisimate.server "$@"

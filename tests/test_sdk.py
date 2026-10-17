@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from openai import OpenAI
 
-from misofish.core import Config, Model, generate_report, prepare, run_round
+from legisimate.core import Config, Model, generate_report, prepare, run_round
 
 
 class ProviderFixture(BaseHTTPRequestHandler):

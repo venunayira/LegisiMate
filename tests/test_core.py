@@ -6,9 +6,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, Mock
 
 from pydantic import ValidationError
-from misofish.core import (Action, Agent, Config, Model, Personas, Report,
+from legisimate.core import (Action, Agent, Config, Model, Personas, Report,
                           generate_report, prepare, run_round)
-import misofish.core as core
+import legisimate.core as core
 
 
 class PopulationModel:
@@ -125,7 +125,7 @@ class CoreTests(unittest.TestCase):
     def test_grounded_report_excludes_private_and_rejects_unknown_evidence(self):
         generate = getattr(core, "generate_grounded_report", None)
         self.assertTrue(callable(generate), "Graph-grounded synthesis is missing.")
-        from misofish.graph import GraphStore, build_graph
+        from legisimate.graph import GraphStore, build_graph
         from test_graph import GraphModel, SOURCE
         import tempfile
         from pathlib import Path
@@ -161,7 +161,7 @@ class CoreTests(unittest.TestCase):
 
     def test_grounded_report_uses_final_interviews_and_default_free_schema(self):
         from openai.lib._pydantic import to_strict_json_schema
-        from misofish.graph import GraphStore, build_graph
+        from legisimate.graph import GraphStore, build_graph
         from test_graph import GraphModel, SOURCE
         import tempfile
         from pathlib import Path
@@ -198,7 +198,7 @@ class CoreTests(unittest.TestCase):
     def test_population_above_ten_is_batched(self):
         prepare_population = getattr(core, "prepare_population", None)
         self.assertTrue(callable(prepare_population), "Rich graph-backed preparation is missing.")
-        from misofish.graph import build_graph
+        from legisimate.graph import build_graph
         from test_graph import GraphModel, SOURCE
         config = Config(scenario="Clinic policy", source=SOURCE, agent_count=13)
         graph = build_graph(config, GraphModel())
@@ -211,7 +211,7 @@ class CoreTests(unittest.TestCase):
         self.assertTrue(all(agent.profile.goal and agent.graph_context for agent in agents))
 
     def test_population_provider_schema_enforces_exact_fictional_slots(self):
-        from misofish.graph import build_graph
+        from legisimate.graph import build_graph
         from test_graph import GraphModel, SOURCE
         config = Config(scenario="Clinic policy", source=SOURCE, agent_count=5)
         graph = build_graph(config, GraphModel())
@@ -247,7 +247,7 @@ class CoreTests(unittest.TestCase):
     def test_population_shortfall_is_explicit(self):
         prepare_population = getattr(core, "prepare_population", None)
         self.assertTrue(callable(prepare_population), "Rich graph-backed preparation is missing.")
-        from misofish.graph import build_graph
+        from legisimate.graph import build_graph
         from test_graph import GraphModel, SOURCE
         config = Config(scenario="Clinic policy", source=SOURCE, agent_count=3, population_mode="grounded")
         graph = build_graph(config, GraphModel())
@@ -259,7 +259,7 @@ class CoreTests(unittest.TestCase):
     def test_population_grounded_actor_context_and_mapping(self):
         prepare_population = getattr(core, "prepare_population", None)
         self.assertTrue(callable(prepare_population), "Rich graph-backed preparation is missing.")
-        from misofish.graph import build_graph
+        from legisimate.graph import build_graph
         from test_graph import GraphModel, SOURCE
         config = Config(scenario="Clinic policy", source=SOURCE, agent_count=2, population_mode="grounded")
         graph = build_graph(config, GraphModel())
@@ -393,7 +393,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(client.responses.parse.call_args.kwargs['reasoning'],{'effort':'none'})
 
     def test_gemini_client_supports_ai_studio_and_vertex_structured_generation(self):
-        from misofish.core import GeminiClient
+        from legisimate.core import GeminiClient
         calls = []
         def fake_transport(req, timeout=None):
             calls.append(req)

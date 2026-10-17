@@ -1,4 +1,4 @@
-# Graph-Grounded Misofish Implementation Plan
+# Graph-Grounded LegisiMate Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking. Do not commit or branch unless the user asks.
 
@@ -32,7 +32,7 @@
 
 ## Task 1: Supported Real-Engine Worker
 
-**Files:** create `worker/requirements.txt`, `worker/main.py`, `misofish/engine.py`; add worker checks to `tests/test_engine.py` and local provider helpers to `tests/test_sdk.py`.
+**Files:** create `worker/requirements.txt`, `worker/main.py`, `legisimate/engine.py`; add worker checks to `tests/test_engine.py` and local provider helpers to `tests/test_sdk.py`.
 
 **Interfaces:** `Engine.run(run, emit, cancelled)` supervises JSONL worker events; `Engine.available()` reports a supported interpreter/dependency state without a paid request. Worker input is a versioned config/profile/graph summary plus a per-run storage path; secrets are inherited only through the environment, never written into events.
 
@@ -43,7 +43,7 @@
 
 ## Task 2: Local Evidence Graph
 
-**Files:** create `misofish/graph.py`, `tests/test_graph.py`; extend `misofish/server.py` storage only as needed.
+**Files:** create `legisimate/graph.py`, `tests/test_graph.py`; extend `legisimate/server.py` storage only as needed.
 
 **Interfaces:** `build_graph(config, model) -> dict`; `GraphStore.save(run_id, graph)`, `GraphStore.context(run_id, entity_id, query, limit) -> dict`, `GraphStore.append_effect(run_id, effect)`. Graph objects carry stable nodes/edges, evidence source IDs/spans, synthetic flags and episode/action IDs. Retrieval uses FTS5 relevance plus explicit incoming/outgoing adjacency, not an asserted embedding equivalent.
 
@@ -54,7 +54,7 @@
 
 ## Task 3: Configurable Graph-Grounded Population
 
-**Files:** modify `misofish/core.py`, `misofish/server.py`, `tests/test_core.py`; use the existing graph tests for selection.
+**Files:** modify `legisimate/core.py`, `legisimate/server.py`, `tests/test_core.py`; use the existing graph tests for selection.
 
 **Interfaces:** `prepare_population(config, graph, model) -> list[Agent]`; `Config` separates default population, deploy ceiling, rounds/time and model-call budget. Profiles retain entity/evidence identities, goals, history, topics, speaking style, activity schedule and synthetic facts. Legacy profiles remain readable with their original fields.
 
@@ -65,7 +65,7 @@
 
 ## Task 4: Social Decisions, Room Conversations And Durable Outcomes
 
-**Files:** modify `worker/main.py`, `misofish/engine.py`, `misofish/server.py`; replace proximity causality in the new engine path; extend `tests/test_conversation.py`, `tests/test_events.py`, `tests/test_space.py`.
+**Files:** modify `worker/main.py`, `legisimate/engine.py`, `legisimate/server.py`; replace proximity causality in the new engine path; extend `tests/test_conversation.py`, `tests/test_events.py`, `tests/test_space.py`.
 
 **Interfaces:** v2 events include observation IDs, platform/group membership, safe decision reason, canonical tick, platform trace/effect ID and effect outcome. `GraphStore.append_effect` consumes committed public effects; private group effects obey visibility boundaries. Existing event IDs and SSE cursor semantics remain stable.
 
@@ -77,7 +77,7 @@
 
 ## Task 5: Graph Memory, Reports And Persona Inspection
 
-**Files:** extend `misofish/graph.py`, `misofish/core.py`, `misofish/server.py`, `tests/test_core.py`, `tests/test_graph.py`.
+**Files:** extend `legisimate/graph.py`, `legisimate/core.py`, `legisimate/server.py`, `tests/test_core.py`, `tests/test_graph.py`.
 
 **Interfaces:** `generate_grounded_report(config, graph_store, run_id, agents, effects, model, emit, cancelled) -> Report`; bounded retrieval returns only committed source/effect identities. Persona inspection exposes profile assumptions, source links and committed participation. Optional live interviews remain deferred rather than pretending saved traces restore live CAMEL memory.
 

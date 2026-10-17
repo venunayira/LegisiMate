@@ -1,11 +1,11 @@
-# Misofish Implementation Plan
+# LegisiMate Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax.
 
 **Goal:** Independent local scenario simulator with a hard ten-agent cap and direct OpenAI SDK use.
 **Architecture:** One local server, one worker job and SQLite snapshots. Independent persona calls use identical previous-round context; server publishes a completed round atomically and generates a citation-checked report.
 **Tech Stack:** Python 3.11+, OpenAI SDK/Pydantic already required by SDK, sqlite3, unittest, vanilla browser UI.
-**Spec:** ../specs/2026-10-13-misofish-design.md
+**Spec:** ../specs/2026-10-13-legisimate-design.md
 
 ## Global Constraints
 - 1..10 agents; 1..10 rounds; default 10 agents/3 rounds; never copy MiroFish implementation.
@@ -21,7 +21,7 @@
 - Cross-origin requests and DOM rendering cannot trigger paid actions or execute input.
 
 ### Task 1: Simulation core and SDK adapter
-Files: create misofish/core.py, tests/test_core.py, requirements.txt.
+Files: create legisimate/core.py, tests/test_core.py, requirements.txt.
 Interfaces: Config.model_validate(dict), prepare(config, model)->list[Agent], run_round(config, agents, actions, model)->list[dict], generate_report(config, agents, actions, model)->Report; Model.generate(output_type, instructions, payload, max_tokens).
 - [ ] Write tests for boundaries, overgenerated agents, same-round isolation, reply/citation rejection and SDK refusal.
 - [ ] Run .venv/bin/python -m unittest discover -s tests -v; confirm missing core before implementation.
@@ -29,7 +29,7 @@ Interfaces: Config.model_validate(dict), prepare(config, model)->list[Agent], ru
 - [ ] Run tests; confirm pass without network.
 
 ### Task 2: Persistence and local HTTP API
-Files: create misofish/server.py, tests/test_server.py.
+Files: create legisimate/server.py, tests/test_server.py.
 Interfaces: Store(path).save/get/list/recover; Manager(store, model).create/start/cancel; make_server(manager, port=8000).
 API: GET /api/config, GET /api/runs, GET /api/runs/{id}; POST /api/runs, POST /api/runs/{id}/start, POST /api/runs/{id}/cancel; static asset allowlist.
 - [ ] Write persistence/recovery, global exclusivity, cancellation/failure and real local HTTP input/origin tests.

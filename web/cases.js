@@ -3,15 +3,90 @@ const byId = identity => document.getElementById(identity);
 const tabs = ['intake', 'brief', 'paths', 'tree', 'court', 'research'];
 const terminalStates = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
 const dateFields = ['cheque_date', 'presented_on', 'valid_until', 'memo_received_on', 'notice_sent_on', 'notice_received_on', 'complaint_filed_on'];
-const state = {config: null, current: null, history: [], activeId: null, tab: 'intake', busy: false, poll: null, preview: null, previewVersion: 0, selectionVersion: 0, selectedSource: null, sources: new Map(), playback: null, playing: false, turnIndex: 0, courtPath: 1, tree: null, treeSignature: '', treeSelection: 'case-root'};
+const state = {config: null, current: null, history: [], activeId: null, tab: 'intake', busy: false, poll: null, preview: null, previewVersion: 0, selectionVersion: 0, selectedSource: null, sources: new Map(), playback: null, playing: false, turnIndex: 0, courtPath: 1, tree: null, treeSignature: '', treeSelection: 'case-root', tourStep: 0};
 const node = (tag, text, className) => { const element = document.createElement(tag); if (text !== undefined) element.textContent = text; if (className) element.className = className; return element; };
 const icon = name => { const element = node('i'); element.dataset.lucide = name; element.setAttribute('aria-hidden', 'true'); return element; };
-const icons = () => MisofishAssets.createIcons({icons: MisofishAssets.icons});
+const icons = () => LegisiMateAssets.createIcons({icons: LegisiMateAssets.icons});
 const localDate = (offset = 0) => { const value = new Date(); value.setDate(value.getDate() + offset); return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`; };
 const formatDate = value => value ? new Intl.DateTimeFormat('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}).format(new Date(value + 'T12:00:00')) : 'Not confirmed';
 const assessmentLabel = value => ({supported: 'Supported in rehearsal', contested: 'Contested', needs_evidence: 'Evidence needed', pending: 'Pending', running: 'In progress'}[value] || value);
 const statusLabel = value => ({researching: 'Analysis in progress', completed: 'Brief ready', failed: 'Analysis stopped', cancelled: 'Stopped', interrupted: 'Interrupted'}[value] || 'New case');
-function error(message) { byId('app-error').textContent = message; byId('app-error').hidden = !message; }
+function error(message) {
+  byId('app-error').textContent = message; byId('app-error').hidden = !message;
+  byId('tour-notice').textContent = message; byId('tour-notice').hidden = !message;
+}
+const paragraphs = (...texts) => texts.map(text => node('p', text));
+const bullets = items => { const list = node('ul'); for (const item of items) list.append(node('li', item)); return list; };
+const fieldValue = identity => { const field = byId(identity); return field.selectedOptions?.[0]?.textContent || formatDate(field.value); };
+const tourSteps = [
+  {targets: ['#load-sample'], title: 'Start with the sample case', next: 'Load sample case', body: () => paragraphs(
+    'This tour uses a fictional cheque-dishonour dispute so you can see what each part of the case form does.',
+    'Loading the sample replaces whatever is in the form; saved cases stay in the sidebar. Nothing is sent to the AI provider and nothing is saved.')},
+  {targets: ['.side-field', '#case-scenario'], title: 'What the sample just filled in', body: () => [
+    ...paragraphs(`Your position is set to ${document.querySelector('input[name="side"]:checked')?.value === 'respondent' ? 'Cheque issuer' : 'Cheque recipient'}: every argument path is prepared from that side.`,
+      'Case facts now describe a textile supplier whose post-dated cheque for unpaid invoices was returned on a stop-payment instruction. The customer calls it a security cheque and disputes the goods.'),
+    node('p', 'Sample dates are set relative to today, so the calendar checks stay current whenever you load it. No AI analysis has started.', 'tour-note')]},
+  {targets: ['#dates-records'], title: 'Dates & records', body: () => [
+    bullets([['cheque-date', 'Cheque date'], ['presented-on', 'Presented to bank'], ['valid-until', 'Bank-confirmed validity end'], ['memo-received', 'Bank information received'], ['notice-sent', 'Demand notice given'], ['notice-received', 'Notice received by drawer'], ['complaint-filed', 'Complaint filed'], ['assessment-date', 'Assessment date']].map(([identity, label]) => `${label}: ${fieldValue(identity)}`)),
+    ...paragraphs('The assessment date is the "as of" day every deadline is measured against. It defaults to today; change it to check a past or future position.',
+      `Complaint filed is left blank because the sample complaint has not been filed. Leave any date you cannot confirm from a document blank; LegisiMate never guesses it.`,
+      `Records: debt or liability is "${fieldValue('debt-evidence')}" and payment after notice is "${fieldValue('payment-received')}". These record what you report holding; originals are not authenticated.`)]},
+  {targets: ['.calendar-preview'], title: 'Calendar review', body: () => {
+    const timeline = state.timeline;
+    if (!timeline) return paragraphs('The calendar review updates whenever a date changes. It is being calculated now.');
+    return [...paragraphs(`Python code, not the AI model, checked the dates against NI Act Sections 138 and 142: ${timeline.checked} input checks met, ${timeline.attention} need professional review, ${timeline.missing} still to confirm.`),
+      bullets(timeline.checks.map(item => `${item.title}: ${{checked: 'meets the base check', attention: 'needs review', missing: 'not confirmed'}[item.status]}`)),
+      ...paragraphs('Base calendar dates below the checks show the notice, payment and complaint windows, counted in days from the assessment date. Each check links to its statutory source.',
+        'Holidays, disputed service and court condonation still need an advocate.')];
+  }},
+  {targets: ['#notes-heading', '#case-evidence', '#new-case'], title: 'Supporting notes & your own case', body: () => [
+    ...paragraphs('Supporting notes hold text extracts from the return memo, notice, agreement or ledger. The sample added a list of reported records.', 'To prepare your own case:'),
+    bullets(['Select New case in the sidebar to clear the form.', 'Choose your position and describe the dispute with anonymised facts.', 'Enter only dates you can confirm from documents.', 'Paste extracts here, or use Add text file for a TXT, Markdown or CSV file under 64 KB. PDFs and images are not read.'])]},
+  {targets: ['.simulation-settings', '.case-consent', '.form-actions'], title: 'Review, consent, analyse', next: 'Start using LegisiMate', body: () => [
+    ...paragraphs('Hearing depth sets the rebuttal cycles and optional educational assessors. The estimate shows statements per path and the maximum number of model calls.',
+      'Analysis starts only after you tick consent and choose Analyse case. The tour never does either.'),
+    node('p', 'This proof of concept uses a selected slice of Indian legislation. The goal is to cover every country with a constitution; that coverage is not enabled yet.', 'tour-scope')]}
+];
+function placeTour() {
+  if (byId('tour').hidden) return;
+  const panel = byId('tour-panel'), targets = tourSteps[state.tourStep].targets.map(selector => document.querySelector(selector)).filter(Boolean);
+  panel.style.left = panel.style.top = ''; panel.classList.remove('docked');
+  if (window.innerWidth < 700 || !targets.length) { panel.classList.add('docked'); return; }
+  const rects = targets.map(target => target.getBoundingClientRect()), gap = 16, width = panel.offsetWidth, height = panel.offsetHeight;
+  const box = {top: Math.min(...rects.map(rect => rect.top)), bottom: Math.max(...rects.map(rect => rect.bottom)), left: Math.min(...rects.map(rect => rect.left)), right: Math.max(...rects.map(rect => rect.right))};
+  const clampTop = value => Math.max(gap, Math.min(value, window.innerHeight - height - gap)), clampLeft = value => Math.max(gap, Math.min(value, window.innerWidth - width - gap));
+  let left, top;
+  if (box.right + gap + width < window.innerWidth) { left = box.right + gap; top = clampTop(box.top); }
+  else if (box.left - gap - width > 0) { left = box.left - gap - width; top = clampTop(box.top); }
+  else if (box.bottom + gap + height < window.innerHeight) { left = clampLeft(box.left); top = box.bottom + gap; }
+  else if (box.top - gap - height > 0) { left = clampLeft(box.left); top = box.top - gap - height; }
+  else { panel.classList.add('docked'); return; }
+  panel.style.left = left + 'px'; panel.style.top = top + 'px';
+}
+function renderTour() {
+  const step = tourSteps[state.tourStep];
+  if (state.tab !== 'intake') showTab('intake');
+  document.querySelectorAll('.tour-target').forEach(element => element.classList.remove('tour-target'));
+  const targets = step.targets.map(selector => document.querySelector(selector)).filter(Boolean);
+  targets.forEach(target => target.classList.add('tour-target'));
+  byId('tour-title').textContent = step.title;
+  byId('tour-body').replaceChildren(...step.body());
+  byId('tour-position').textContent = `Step ${state.tourStep + 1} of ${tourSteps.length}`;
+  byId('tour-back').disabled = state.tourStep === 0;
+  byId('tour-skip').hidden = state.tourStep === tourSteps.length - 1;
+  byId('tour-next-label').textContent = step.next || 'Next';
+  targets[0]?.scrollIntoView({block: window.innerWidth < 700 ? 'start' : 'center'});
+  placeTour(); byId('tour-title').focus();
+}
+function openTour(returnTab = 'brief') {
+  state.tourStep = 0; state.tourReturn = returnTab; byId('tour').hidden = false; document.querySelector('.app-shell').inert = true; renderTour();
+}
+function closeTour() {
+  byId('tour').hidden = true; document.querySelector('.app-shell').inert = false;
+  document.querySelectorAll('.tour-target').forEach(element => element.classList.remove('tour-target'));
+  showTab(state.current ? state.tourReturn : 'intake');
+  byId(state.tab === 'intake' ? 'case-scenario' : 'start-tour').focus();
+}
 async function api(path, body) {
   const response = await fetch(path, {...(body === undefined ? {} : {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)}), signal: AbortSignal.timeout(20000)});
   const result = await response.json();
@@ -85,9 +160,11 @@ async function previewCalendar() {
   try {
     const timeline = await api('/api/cases/timeline', {facts: facts(), as_of: asOf});
     if (version !== state.previewVersion) return;
-    byId('calendar-error').hidden = true; renderCalendar(byId('calendar-preview'), timeline);
+    byId('calendar-error').hidden = true; state.timeline = timeline; renderCalendar(byId('calendar-preview'), timeline);
+    if (!byId('tour').hidden && state.tourStep === 3) renderTour();
   } catch (exception) {
     if (version !== state.previewVersion) return;
+    state.timeline = null;
     byId('calendar-preview').replaceChildren(); byId('calendar-error').textContent = exception.message; byId('calendar-error').hidden = false;
   }
 }
@@ -222,7 +299,7 @@ function renderDecisionTree() {
   const elements = decisionTreeElements(run); select.replaceChildren();
   for (const item of elements.filter(item => !item.data.source)) select.append(new Option(`${item.data.branchId ? `Path ${item.data.branchId} / ` : ''}${item.data.phase || item.data.label.replace(/\n/g, ' / ')}`, item.data.id));
   state.tree?.destroy();
-  state.tree = MisofishAssets.cytoscape({container: host, elements,
+  state.tree = LegisiMateAssets.cytoscape({container: host, elements,
     style: [{selector: 'node', style: {'shape': 'round-rectangle', 'background-color': 'data(color)', 'label': 'data(label)', 'color': '#fff', 'font-family': 'IBM Plex Sans', 'font-size': 12, 'text-wrap': 'wrap', 'text-max-width': 140, 'text-valign': 'center', 'text-halign': 'center', 'width': 160, 'height': 72}},
       {selector: 'edge', style: {'width': 2, 'line-color': '#99ada1', 'target-arrow-color': '#99ada1', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier'}},
       {selector: 'node:selected', style: {'border-width': 3, 'border-color': '#245e97'}}],
@@ -308,7 +385,7 @@ async function selectCase(identity) {
   try {
     const run = await api('/api/cases/' + identity); if (version !== state.selectionVersion) return;
     state.current = run; state.sources.clear(); state.selectedSource = null; state.turnIndex = 0; state.courtPath = 1; state.playing = false; ConversationRoom.reset();
-    byId('source-detail').replaceChildren(node('h3', 'No source selected')); fillForm(run.request); renderRun(); renderHistory(); showTab('brief');
+    byId('source-detail').replaceChildren(node('h3', 'No source selected')); fillForm(run.request); renderRun(); renderHistory(); showTab(byId('tour').hidden ? 'brief' : 'intake');
     history.replaceState(null, '', '?case=' + encodeURIComponent(identity));
   } catch (exception) { if (version === state.selectionVersion) error(exception.message); }
   finally { if (version === state.selectionVersion) { state.busy = false; controls(); } }
@@ -327,15 +404,30 @@ document.querySelector('.case-tabs').addEventListener('keydown', event => {
 });
 byId('new-case').addEventListener('click', newCase);
 byId('refresh-cases').addEventListener('click', () => refreshHistory().then(pollActive).catch(exception => error(exception.message)));
-byId('load-sample').addEventListener('click', () => {
+function loadSample() {
   fillForm({side: 'complainant', as_of: localDate(), scenario: 'A small textile supplier received a post-dated cheque for unpaid invoices. The cheque was returned with a stop-payment instruction. The customer says it was only a security cheque and disputes the quality of the goods. The supplier reports that a written demand notice was delivered and payment remains unpaid. The supplied dates need confirmation against the original bank and dispatch records.', evidence: 'Reported records: supply agreement, invoices, delivery acknowledgements and bank return memo. The customer disputes the quality of goods. Notice service and the outstanding balance need documentary confirmation.', facts: {cheque_date: localDate(-75), presented_on: localDate(-45), valid_until: localDate(10), memo_received_on: localDate(-44), notice_sent_on: localDate(-20), notice_received_on: localDate(-17), complaint_filed_on: '', debt_evidence: 'available', payment_received: 'no'}});
+}
+byId('load-sample').addEventListener('click', loadSample);
+byId('tour-back').addEventListener('click', () => { state.tourStep = Math.max(0, state.tourStep - 1); renderTour(); });
+byId('tour-next').addEventListener('click', () => {
+  if (state.tourStep === 0) { newCase(); loadSample(); }
+  if (state.tourStep < tourSteps.length - 1) { state.tourStep++; renderTour(); return; }
+  closeTour();
 });
-byId('evidence-file').addEventListener('change', async event => {
+byId('tour-skip').addEventListener('click', closeTour);
+byId('start-tour').addEventListener('click', () => openTour(state.tab));
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !byId('tour').hidden) { event.preventDefault(); closeTour(); } });
+window.addEventListener('resize', placeTour);
+async function importEvidence(event) {
   const file = event.target.files[0]; if (!file) return;
   if (file.size > 64000 || !/\.(txt|md|csv)$/i.test(file.name)) { error('Choose a text, Markdown or CSV extract under 64 KB.'); event.target.value = ''; return; }
-  const text = await file.text(); if (text.length > 16000) { error('The supporting text must contain at most 16,000 characters.'); return; }
-  byId('case-evidence').value = text; byId('file-status').textContent = `${file.name} · ${text.length.toLocaleString()} characters`; error('');
-});
+  try {
+    const text = await file.text(); if (text.length > 16000) { error('The supporting text must contain at most 16,000 characters.'); return; }
+    byId('case-evidence').value = text;
+    byId('file-status').textContent = `${file.name} · ${text.length.toLocaleString()} characters`; error('');
+  } catch { error('The file could not be read. Try another text extract.'); }
+}
+byId('evidence-file').addEventListener('change', importEvidence);
 byId('case-form').addEventListener('submit', async event => {
   event.preventDefault(); if (!event.target.reportValidity() || state.busy || state.activeId) return;
   state.busy = true; error(''); controls();
@@ -370,13 +462,14 @@ window.addEventListener('persona-select', event => {
   state.turnIndex = index; state.playing = false; ConversationRoom.select(event.detail); renderCourt();
 });
 async function initialize() {
-  icons(); fillForm(null);
+  const selectionVersion = state.selectionVersion;
+  icons(); fillForm(null); openTour();
   try {
     state.config = await api('/api/config'); byId('provider-warning').hidden = state.config.configured;
     byId('provider-state').textContent = state.config.configured ? state.config.model : 'AI provider not configured';
     byId('corpus-state').textContent = state.config.legal_corpus.available ? `${state.config.legal_corpus.judgment_cases.toLocaleString()} local precedents` : 'Legal corpus unavailable';
     await refreshHistory(); const identity = new URLSearchParams(location.search).get('case') || state.activeId || state.history[0]?.id;
-    if (identity) await selectCase(identity); pollActive();
+    if (identity && selectionVersion === state.selectionVersion) await selectCase(identity); pollActive();
   } catch (exception) { error(exception.message); }
   controls();
 }

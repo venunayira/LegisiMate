@@ -5,9 +5,9 @@ import unittest
 import urllib.request
 from pathlib import Path
 
-from misofish.server import Manager, Store, make_server
+from legisimate.server import Manager, Store, make_server
 from test_core import FakeModel, FixtureEngine
-from misofish.core import Action
+from legisimate.core import Action
 from pydantic import ValidationError
 
 

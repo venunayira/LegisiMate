@@ -6,7 +6,7 @@ let paused=false,viewerIndex=-1,viewerTick=0,followLive=true,playbackTimer,speed
 const courtMode=()=>current?.config?.platform_mode==='court',townMode=()=>['town','court'].includes(current?.config?.platform_mode);
 const node=(tag,text,className)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;if(className)element.className=className;return element;};
 const icon=(name)=>{const element=node('i');element.dataset.lucide=name;return element;};
-const icons=()=>MisofishAssets.createIcons({icons:MisofishAssets.icons});
+const icons=()=>LegisiMateAssets.createIcons({icons:LegisiMateAssets.icons});
 const shiftLabels={unchanged:'Held view',softened:'Softened',hardened:'Hardened',reversed:'Changed sides',not_stated:'Shift not stated'},shiftLabel=shift=>shiftLabels[shift||'not_stated'];
 function error(message){$('error').textContent=message;$('error').hidden=!message;}
 async function api(path,body){const response=await fetch(path,{...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok)throw new Error(result.error||`Request failed (${response.status})`);return result;}
@@ -228,7 +228,7 @@ function renderGraph(){
     for(const [id,member] of members)if(groups.has(member.group))elements.push({data:{id:'membership-'+id,source:'persona-'+member.actor,target:'group-'+member.group,label:'member'}});
   }
   $('graph-count').textContent=`${elements.filter(item=>!item.data.source).length} nodes / ${elements.filter(item=>item.data.source).length} links`;
-  graphRenderer=MisofishAssets.cytoscape({container:$('graph-canvas'),elements,style:[{selector:'node',style:{'background-color':ele=>ele.data('color')||'#14705e','label':'data(label)','font-family':'IBM Plex Sans','font-size':11,'color':'#202d32','text-valign':'bottom','text-margin-y':8,'width':26,'height':26}},{selector:'edge',style:{'width':1.4,'line-color':'#9aafb4','target-arrow-color':'#9aafb4','target-arrow-shape':'triangle','curve-style':'bezier','label':'data(label)','font-size':9,'color':'#54676d','text-background-color':'#f5f8f8','text-background-opacity':1,'text-background-padding':'3px'}},{selector:':selected',style:{'background-color':'#bd503e','line-color':'#bd503e'}}],layout:{name:kind==='decision'?'breadthfirst':'cose',directed:true,animate:false,randomize:false,nodeRepulsion:()=>500000,padding:40},minZoom:.2,maxZoom:4});
+  graphRenderer=LegisiMateAssets.cytoscape({container:$('graph-canvas'),elements,style:[{selector:'node',style:{'background-color':ele=>ele.data('color')||'#14705e','label':'data(label)','font-family':'IBM Plex Sans','font-size':11,'color':'#202d32','text-valign':'bottom','text-margin-y':8,'width':26,'height':26}},{selector:'edge',style:{'width':1.4,'line-color':'#9aafb4','target-arrow-color':'#9aafb4','target-arrow-shape':'triangle','curve-style':'bezier','label':'data(label)','font-size':9,'color':'#54676d','text-background-color':'#f5f8f8','text-background-opacity':1,'text-background-padding':'3px'}},{selector:':selected',style:{'background-color':'#bd503e','line-color':'#bd503e'}}],layout:{name:kind==='decision'?'breadthfirst':'cose',directed:true,animate:false,randomize:false,nodeRepulsion:()=>500000,padding:40},minZoom:.2,maxZoom:4});
   graphRenderer.on('tap','node,edge',event=>{
     const id=event.target.id(),actId=event.target.data('actionId');
     if(actId){

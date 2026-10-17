@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 class Engine:
     def __init__(self, python=None, environment=None):
-        self.python = str(python or os.environ.get("MISOFISH_WORKER_PYTHON") or
+        self.python = str(python or os.environ.get("LEGISIMATE_WORKER_PYTHON") or
                           ROOT / ".worker-venv" / "bin" / "python")
         self.environment = environment or {}
 
