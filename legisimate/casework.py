@@ -315,7 +315,15 @@ def grounded_statement_schema(sources):
         prompt_sources.append({key: value for key, value in source.items() if key != "text"} | {"quote_options": options})
     if not citation_types:
         raise ValueError("legal_source_unavailable")
+    allowed = {(source["id"], option["id"]) for source in prompt_sources for option in source["quote_options"]}
+
+    def drop_unknown_citations(cls, value):
+        if not isinstance(value, list):
+            return value
+        return [item for item in value if isinstance(item, dict) and (item.get("source_id"), item.get("quote_id")) in allowed]
+
     schema = create_model("CaseStatement", __base__=CaseStatement,
+        __validators__={"drop_unknown_citations": field_validator("citations", mode="before")(drop_unknown_citations)},
         citations=(list[Union[tuple(citation_types)]], Field(min_length=1, max_length=3)))
     return schema, prompt_sources
 

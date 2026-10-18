@@ -155,6 +155,9 @@ class CaseWorkflowTests(unittest.TestCase):
         resolved = resolve_source_quotes(result.citations, prompt_sources)
         self.assertTrue(verify_quotes(resolved, sources)[0]["matched"])
         self.assertEqual(resolved[0].quote, sources[0]["text"])
+        mixed = schema(**fields, citations=[{"source_id": "notice", "quote_id": prompt_sources[0]["quote_options"][0]["id"]},
+                                            {"source_id": "unoffered_case", "quote_id": prompt_sources[1]["quote_options"][0]["id"]}])
+        self.assertEqual([citation.source_id for citation in mixed.citations], ["notice"])
 
     def test_court_statements_require_at_least_one_source_quote(self):
         with self.assertRaises(ValidationError):
