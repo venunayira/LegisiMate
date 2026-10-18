@@ -2,6 +2,8 @@
 import json
 import os
 import sys
+import time
+import urllib.error
 import urllib.request
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from threading import Event, Lock
@@ -213,6 +215,7 @@ class GeminiClient:
         self.timeout = float(timeout)
         self.transport = transport or urllib.request.urlopen
         self.allow_fallback = bool(allow_fallback)
+        self.sleep = time.sleep
         self.provider = "vertex-gemini" if project and not api_key else "gemini"
 
     def _vertex_token(self):
@@ -374,31 +377,44 @@ class GeminiClient:
                 headers["Authorization"] = f"Bearer {self._vertex_token()}"
             else:
                 raise ValueError("GeminiClient requires GEMINI_API_KEY or GOOGLE_CLOUD_PROJECT.")
-            req = urllib.request.Request(url, data=json.dumps(body, ensure_ascii=False).encode("utf-8"), headers=headers, method="POST")
-            with self.transport(req, timeout=self.timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-            candidates = data.get("candidates") or []
-            parts = ((candidates[0].get("content") or {}).get("parts") or []) if candidates else []
-            raw = "".join(part.get("text", "") for part in parts if isinstance(part, dict) and not part.get("thought")).strip()
-            if not raw:
-                raise ValueError("Model refused or returned incomplete structured output.")
-            parsed = from_json(raw)
-            if on_delta is not None and isinstance(parsed, dict):
-                fields = {key: value[:3000] for key, value in parsed.items()
-                          if key in {"text", "summary", "conclusion"} and isinstance(value, str)}
-                if fields:
-                    on_delta(fields)
-            usage_meta = data.get("usageMetadata") or {}
-            usage = {
-                "input_tokens": int(usage_meta.get("promptTokenCount", 0) or 0),
-                "output_tokens": int(usage_meta.get("candidatesTokenCount", 0) or 0),
-            }
-            return output_type.model_validate(parsed), usage
+            for attempt in range(4):
+                try:
+                    return self._request_structured(url, body, headers, output_type, on_delta)
+                except urllib.error.HTTPError as exc:
+                    if attempt == 3 or (exc.code != 429 and exc.code < 500):
+                        raise
+                except (ValueError, TimeoutError):
+                    if attempt == 3:
+                        raise
+                self.sleep(2 ** (attempt + 1))
         except Exception as exc:
             if self.allow_fallback:
                 print(f"gemini_fallback {getattr(output_type, '__name__', '')}: {type(exc).__name__}: {str(exc)[:300]}", file=sys.stderr, flush=True)
                 return self._corpus_fallback(output_type, payload)
             raise
+
+    def _request_structured(self, url, body, headers, output_type, on_delta):
+        req = urllib.request.Request(url, data=json.dumps(body, ensure_ascii=False).encode("utf-8"), headers=headers, method="POST")
+        with self.transport(req, timeout=self.timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        candidates = data.get("candidates") or []
+        parts = ((candidates[0].get("content") or {}).get("parts") or []) if candidates else []
+        raw = "".join(part.get("text", "") for part in parts if isinstance(part, dict) and not part.get("thought")).strip()
+        if not raw:
+            raise ValueError("Model refused or returned incomplete structured output.")
+        parsed = from_json(raw)
+        result = output_type.model_validate(parsed)
+        if on_delta is not None and isinstance(parsed, dict):
+            fields = {key: value[:3000] for key, value in parsed.items()
+                      if key in {"text", "summary", "conclusion"} and isinstance(value, str)}
+            if fields:
+                on_delta(fields)
+        usage_meta = data.get("usageMetadata") or {}
+        usage = {
+            "input_tokens": int(usage_meta.get("promptTokenCount", 0) or 0),
+            "output_tokens": int(usage_meta.get("candidatesTokenCount", 0) or 0),
+        }
+        return result, usage
 
     def close(self):
         pass

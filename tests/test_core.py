@@ -426,6 +426,32 @@ class CoreTests(unittest.TestCase):
         self.assertIn("asia-south1-aiplatform.googleapis.com", calls[1].full_url)
         self.assertEqual(calls[1].headers.get("Authorization"), "Bearer vertex-token-123")
 
+    def test_gemini_client_retries_transient_failures_but_not_auth_errors(self):
+        import urllib.error
+        from legisimate.core import GeminiClient
+        good = {"candidates": [{"content": {"parts": [{"text": Personas(agents=roster()).model_dump_json()}]}}]}
+        replies = [urllib.error.HTTPError("u", 429, "Too Many Requests", {}, None),
+                   {"candidates": [{"content": {"parts": [{"text": '{"agents": ['}]}}]}, good]
+        def fake_transport(req, timeout=None):
+            reply = replies.pop(0)
+            if isinstance(reply, Exception):
+                raise reply
+            resp = MagicMock()
+            resp.__enter__.return_value = resp
+            resp.read.return_value = json.dumps(reply).encode("utf-8")
+            return resp
+        client = GeminiClient(api_key="k", transport=fake_transport)
+        slept = []
+        client.sleep = slept.append
+        out, _ = client.generate_structured("gemini-2.5-flash", Personas, "x", {}, 400)
+        self.assertEqual(len(out.agents), 2)
+        self.assertEqual(slept, [2, 4])
+
+        replies[:] = [urllib.error.HTTPError("u", 403, "Forbidden", {}, None), good]
+        with self.assertRaises(urllib.error.HTTPError):
+            client.generate_structured("gemini-2.5-flash", Personas, "x", {}, 400)
+        self.assertEqual(len(replies), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
