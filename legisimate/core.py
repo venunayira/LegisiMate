@@ -1,6 +1,7 @@
 """Validated graph-grounded profiles and synthesis, plus legacy discussion contracts."""
 import json
 import os
+import sys
 import urllib.request
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from threading import Event, Lock
@@ -360,6 +361,9 @@ class GeminiClient:
                     "responseMimeType": "application/json",
                 },
             }
+            if "flash" in model:
+                # 2.5 Flash thinking tokens share maxOutputTokens and truncate the JSON answer.
+                body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
             headers = {"Content-Type": "application/json"}
             if self.api_key:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -390,8 +394,9 @@ class GeminiClient:
                 "output_tokens": int(usage_meta.get("candidatesTokenCount", 0) or 0),
             }
             return output_type.model_validate(parsed), usage
-        except Exception:
+        except Exception as exc:
             if self.allow_fallback:
+                print(f"gemini_fallback {getattr(output_type, '__name__', '')}: {type(exc).__name__}: {str(exc)[:300]}", file=sys.stderr, flush=True)
                 return self._corpus_fallback(output_type, payload)
             raise
 

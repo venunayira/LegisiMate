@@ -415,6 +415,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(model.usage, {"input_tokens": 44, "output_tokens": 21})
         self.assertIn("generativelanguage.googleapis.com", calls[0].full_url)
         self.assertEqual(calls[0].headers.get("X-goog-api-key"), "AIzaTestKey")
+        self.assertEqual(json.loads(calls[0].data)["generationConfig"]["thinkingConfig"], {"thinkingBudget": 0})
 
         calls.clear()
         vertex = GeminiClient(project="legisimate-gcp", location="asia-south1", transport=fake_transport)
